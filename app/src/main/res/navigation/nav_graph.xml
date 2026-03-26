@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.medtracker.app.ui.main.HomeFragment"
+        android:label="浠婃棩鏈嶈嵂">
+        <action
+            android:id="@+id/action_homeFragment_to_cameraFragment"
+            app:destination="@id/cameraFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_historyFragment"
+            app:destination="@id/historyFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/cameraFragment"
+        android:name="com.medtracker.app.ui.camera.CameraFragment"
+        android:label="鎷嶇収璁板綍" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.medtracker.app.ui.settings.SettingsFragment"
+        android:label="璁剧疆">
+        <action
+            android:id="@+id/action_settingsFragment_to_addMedicationFragment"
+            app:destination="@id/addMedicationFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addMedicationFragment"
+        android:name="com.medtracker.app.ui.settings.AddMedicationFragment"
+        android:label="鑽墿淇℃伅">
+        <argument
+            android:name="medication_id"
+            app:argType="long"
+            android:defaultValue="-1" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="com.medtracker.app.ui.history.HistoryFragment"
+        android:label="鍘嗗彶璁板綍">
+        <action
+            android:id="@+id/action_historyFragment_to_photoViewFragment"
+            app:destination="@id/photoViewFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/photoViewFragment"
+        android:name="com.medtracker.app.ui.history.PhotoViewFragment"
+        android:label="鐓х墖鏌ョ湅">
+        <argument
+            android:name="photo_path"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="date"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="taken_time"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
+</navigation>
