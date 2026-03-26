@@ -1,0 +1,26 @@
+<resources>
+    <!-- 涓昏壊璋冿細缁胯壊锛堝仴搴蜂富棰橈級 -->
+    <color name="colorPrimary">#4CAF50</color>
+    <color name="colorPrimaryDark">#388E3C</color>
+    <color name="colorPrimaryVariant">#2E7D32</color>
+    <color name="colorSecondary">#2196F3</color>
+    <color name="colorSecondaryVariant">#1565C0</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+    <color name="colorOnSecondary">#FFFFFF</color>
+    <color name="colorSurface">#FFFFFF</color>
+    <color name="colorOnSurface">#212121</color>
+    <color name="colorBackground">#F5F5F5</color>
+
+    <!-- 鐘舵€侀鑹?-->
+    <color name="status_taken">#4CAF50</color>
+    <color name="status_pending">#FF9800</color>
+    <color name="status_missed">#F44336</color>
+
+    <!-- 鏂囧瓧棰滆壊 -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#9E9E9E</color>
+
+    <!-- 鍥炬爣棰滆壊 -->
+    <color name="ic_launcher_background">#4CAF50</color>
+</resources>
