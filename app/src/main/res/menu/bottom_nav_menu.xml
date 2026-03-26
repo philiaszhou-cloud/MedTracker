@@ -4,16 +4,16 @@
     <item
         android:id="@+id/homeFragment"
         android:icon="@android:drawable/ic_menu_today"
-        android:title="浠婃棩" />
+        android:title="Today" />
 
     <item
         android:id="@+id/settingsFragment"
         android:icon="@android:drawable/ic_menu_preferences"
-        android:title="璁剧疆" />
+        android:title="Settings" />
 
     <item
         android:id="@+id/historyFragment"
         android:icon="@android:drawable/ic_menu_recent_history"
-        android:title="鍘嗗彶" />
+        android:title="History" />
 
 </menu>
