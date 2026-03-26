@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:background="#000000">
 
-    <!-- 鐓х墖淇℃伅 -->
+    <!-- Photo info -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -31,21 +31,21 @@
             android:layout_marginTop="4dp" />
     </LinearLayout>
 
-    <!-- 澶у浘 -->
+    <!-- Full image -->
     <ImageView
         android:id="@+id/imgFullPhoto"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:scaleType="fitCenter"
-        android:contentDescription="鏈嶈嵂鐓х墖" />
+        android:contentDescription="Medication photo" />
 
-    <!-- 杩斿洖鎸夐挳 -->
+    <!-- Back button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnBack"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:text="杩斿洖"
+        android:text="Back"
         app:backgroundTint="#424242"
         android:textColor="#FFFFFF"
         xmlns:app="http://schemas.android.com/apk/res-auto"
