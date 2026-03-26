@@ -98,3 +98,6 @@ cd MedTracker
 - 闇€瑕?Android 12+ 鎵嶈兘浣跨敤绮剧‘闂归挓锛圫CHEDULE_EXACT_ALARM锛?
 - 鐓х墖瀛樺偍鍦ㄦ墜鏈虹浉鍐岀殑 MedTracker 鏂囦欢澶逛腑
 - 鎻愰啋鍦ㄩ噸鍚悗浼氳嚜鍔ㄩ噸鏂版敞鍐岋紙閫氳繃 BOOT_COMPLETED锛?
+
+
+-- Updated at 2026-03-26 23:15:14
