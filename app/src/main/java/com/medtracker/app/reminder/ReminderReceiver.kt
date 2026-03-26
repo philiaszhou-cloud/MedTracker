@@ -1,0 +1,146 @@
+package com.medtracker.app.reminder
+
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import com.medtracker.app.MedTrackerApplication
+import com.medtracker.app.R
+import com.medtracker.app.ui.main.MainActivity
+import java.util.Calendar
+
+class ReminderReceiver : BroadcastReceiver() {
+
+    override fun onReceive(context: Context, intent: Intent) {
+        when (intent.action) {
+            Intent.ACTION_BOOT_COMPLETED -> {
+                // 寮€鏈哄悗閲嶆柊娉ㄥ唽鎵€鏈夋彁閱?
+                ReminderScheduler.rescheduleAll(context)
+            }
+            "com.medtracker.app.MEDICATION_REMINDER" -> {
+                showNotification(context, intent)
+            }
+        }
+    }
+
+    private fun showNotification(context: Context, intent: Intent) {
+        val label = intent.getStringExtra("label") ?: "鏈嶈嵂鎻愰啋"
+
+        val mainIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("open_camera", true)
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context, 0, mainIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, MedTrackerApplication.CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_pill)
+            .setContentTitle("馃拪 $label")
+            .setContentText("璇疯寰楁湇鐢ㄦ偍鐨?绉嶈嵂鐗╋紝骞舵媿鐓ц褰曘€?)
+            .setStyle(NotificationCompat.BigTextStyle()
+                .bigText("璇疯寰楁湇鐢ㄦ偍鐨?绉嶈嵂鐗╋紝骞舵媿鐓ц褰曘€傜偣鍑绘墦寮€APP杩涜鎷嶇収纭銆?))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setVibrate(longArrayOf(0, 500, 200, 500))
+            .build()
+
+        try {
+            with(NotificationManagerCompat.from(context)) {
+                notify(MedTrackerApplication.NOTIFICATION_ID, notification)
+            }
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+        }
+    }
+}
+
+object ReminderScheduler {
+
+    fun scheduleReminder(context: Context, reminderId: Long, hour: Int, minute: Int, label: String) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        val intent = Intent(context, ReminderReceiver::class.java).apply {
+            action = "com.medtracker.app.MEDICATION_REMINDER"
+            putExtra("reminder_id", reminderId)
+            putExtra("label", label)
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            reminderId.toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+            // 濡傛灉鏃堕棿宸茶繃锛岃缃负鏄庡ぉ
+            if (timeInMillis <= System.currentTimeMillis()) {
+                add(Calendar.DAY_OF_YEAR, 1)
+            }
+        }
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setRepeating(
+                        AlarmManager.RTC_WAKEUP,
+                        calendar.timeInMillis,
+                        AlarmManager.INTERVAL_DAY,
+                        pendingIntent
+                    )
+                } else {
+                    alarmManager.setInexactRepeating(
+                        AlarmManager.RTC_WAKEUP,
+                        calendar.timeInMillis,
+                        AlarmManager.INTERVAL_DAY,
+                        pendingIntent
+                    )
+                }
+            } else {
+                alarmManager.setRepeating(
+                    AlarmManager.RTC_WAKEUP,
+                    calendar.timeInMillis,
+                    AlarmManager.INTERVAL_DAY,
+                    pendingIntent
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun cancelReminder(context: Context, reminderId: Long) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, ReminderReceiver::class.java).apply {
+            action = "com.medtracker.app.MEDICATION_REMINDER"
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            reminderId.toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmManager.cancel(pendingIntent)
+    }
+
+    fun rescheduleAll(context: Context) {
+        val db = (context.applicationContext as MedTrackerApplication).database
+        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val reminders = db.reminderDao().getEnabledReminders()
+            reminders.forEach { reminder ->
+                scheduleReminder(context, reminder.id, reminder.hour, reminder.minute, reminder.label)
+            }
+        }
+    }
+}
