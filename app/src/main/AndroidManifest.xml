@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 鎽勫儚澶存潈闄?-->
+    <!-- Camera permission -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
-    <!-- 瀛樺偍鏉冮檺 -->
+    <!-- Storage permission -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="29" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
-    <!-- 閫氱煡鏉冮檺 -->
+    <!-- Notification permission -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -42,7 +42,7 @@
             </intent-filter>
         </activity>
 
-        <!-- 鎻愰啋鎺ユ敹鍣?-->
+        <!-- Reminder receiver -->
         <receiver
             android:name=".reminder.ReminderReceiver"
             android:exported="true"
@@ -53,7 +53,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- 鎻愰啋鏈嶅姟 -->
+        <!-- Reminder service -->
         <service
             android:name=".reminder.ReminderNotificationService"
             android:exported="false"
