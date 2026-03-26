@@ -7,7 +7,7 @@
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.medtracker.app.ui.main.HomeFragment"
-        android:label="浠婃棩鏈嶈嵂">
+        android:label="Today">
         <action
             android:id="@+id/action_homeFragment_to_cameraFragment"
             app:destination="@id/cameraFragment" />
@@ -22,12 +22,12 @@
     <fragment
         android:id="@+id/cameraFragment"
         android:name="com.medtracker.app.ui.camera.CameraFragment"
-        android:label="鎷嶇収璁板綍" />
+        android:label="Take Photo" />
 
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.medtracker.app.ui.settings.SettingsFragment"
-        android:label="璁剧疆">
+        android:label="Settings">
         <action
             android:id="@+id/action_settingsFragment_to_addMedicationFragment"
             app:destination="@id/addMedicationFragment" />
@@ -36,7 +36,7 @@
     <fragment
         android:id="@+id/addMedicationFragment"
         android:name="com.medtracker.app.ui.settings.AddMedicationFragment"
-        android:label="鑽墿淇℃伅">
+        android:label="Medication Info">
         <argument
             android:name="medication_id"
             app:argType="long"
@@ -46,7 +46,7 @@
     <fragment
         android:id="@+id/historyFragment"
         android:name="com.medtracker.app.ui.history.HistoryFragment"
-        android:label="鍘嗗彶璁板綍">
+        android:label="History">
         <action
             android:id="@+id/action_historyFragment_to_photoViewFragment"
             app:destination="@id/photoViewFragment" />
@@ -55,7 +55,7 @@
     <fragment
         android:id="@+id/photoViewFragment"
         android:name="com.medtracker.app.ui.history.PhotoViewFragment"
-        android:label="鐓х墖鏌ョ湅">
+        android:label="Photo View">
         <argument
             android:name="photo_path"
             app:argType="string"
