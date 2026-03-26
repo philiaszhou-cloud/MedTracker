@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- 鎽勫儚澶撮瑙?-->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/viewFinder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 鐓х墖棰勮 -->
+    <ImageView
+        android:id="@+id/imgPreview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:visibility="gone"
+        android:contentDescription="鏈嶈嵂鐓х墖棰勮" />
+
+    <!-- 椤堕儴鎻愮ず -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="top"
+        android:background="#99000000"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvInstructions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="灏嗘墍鏈夎嵂鐗╂斁鍦ㄥ悓涓€鐢婚潰鍐呮媿鐓?
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvMedHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#E0E0E0"
+            android:textSize="12sp"
+            android:layout_marginTop="6dp"
+            android:lineSpacingExtra="4dp" />
+    </LinearLayout>
+
+    <!-- 杩涘害鏉?-->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:indeterminateTint="@android:color/white" />
+
+    <!-- 鎷嶇収妯″紡鎸夐挳 -->
+    <LinearLayout
+        android:id="@+id/layoutCameraActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom"
+        android:background="#CC000000"
+        android:padding="20dp"
+        android:gravity="center">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="鍙栨秷"
+            android:textColor="#FFFFFF"
+            app:strokeColor="#FFFFFF"
+            app:cornerRadius="28dp"
+            android:layout_marginEnd="16dp" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnCapture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_camera"
+            app:backgroundTint="#4CAF50"
+            android:contentDescription="鎷嶇収"
+            app:fabSize="normal" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <!-- 纭/閲嶆媿 鎸夐挳 -->
+    <LinearLayout
+        android:id="@+id/layoutConfirmActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom"
+        android:background="#CC000000"
+        android:padding="20dp"
+        android:gravity="center">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRetake"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="閲嶆媿"
+            android:textColor="#FFFFFF"
+            app:strokeColor="#FFFFFF"
+            app:cornerRadius="8dp"
+            android:layout_marginEnd="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConfirm"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="2"
+            android:text="鉁?纭鏈嶈嵂"
+            android:textSize="16sp"
+            app:backgroundTint="#4CAF50"
+            app:cornerRadius="8dp" />
+    </LinearLayout>
+
+</FrameLayout>
