@@ -12,23 +12,23 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- 娣诲姞鑽墿鏍囬 -->
+        <!-- Add medication title -->
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="娣诲姞鑽墿"
+            android:text="Add Medication"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="#212121"
             android:layout_marginBottom="16dp" />
 
-        <!-- 鑽墿鍚嶇О -->
+        <!-- Medication name -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilMedName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="鑽墿鍚嶇О锛堝锛氶樋鍙稿尮鏋楋級"
+            android:hint="Medication name (e.g., Aspirin)"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="16dp">
 
@@ -40,11 +40,11 @@
                 android:maxLines="1" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- 棰滆壊閫夋嫨 -->
+        <!-- Color selection -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="鑽墿棰滆壊"
+            android:text="Medication Color"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="#424242"
@@ -68,7 +68,7 @@
                 android:id="@+id/tvSelectedColor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="鐧借壊"
+                android:text="White"
                 android:textSize="14sp"
                 android:textColor="#616161" />
         </LinearLayout>
@@ -80,11 +80,11 @@
             app:singleSelection="true"
             android:layout_marginBottom="16dp" />
 
-        <!-- 褰㈢姸閫夋嫨 -->
+        <!-- Shape selection -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="鑽墿褰㈢姸"
+            android:text="Medication Shape"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="#424242"
@@ -97,11 +97,11 @@
             app:singleSelection="true"
             android:layout_marginBottom="16dp" />
 
-        <!-- 鍓傞噺 -->
+        <!-- Dosage -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="姣忔鍓傞噺"
+            android:hint="Dosage per intake"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_marginBottom="16dp">
 
@@ -112,11 +112,11 @@
                 android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- 澶囨敞 -->
+        <!-- Notes -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="澶囨敞锛堝彲閫夛紝濡傦細楗悗鏈嶇敤锛?
+            android:hint="Notes (optional, e.g., take after meals)"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="16dp">
 
@@ -128,11 +128,11 @@
                 android:maxLines="3" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- 鍙傝€冪収鐗?-->
+        <!-- Reference photo -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="鍙傝€冪収鐗囷紙鍙€夛級"
+            android:text="Reference Photo (optional)"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="#424242"
@@ -156,20 +156,20 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
-                    android:contentDescription="鑽墿鍙傝€冪収鐗? />
+                    android:contentDescription="Medication reference photo" />
 
                 <TextView
                     android:id="@+id/tvPhotoHint"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:text="馃摲\n鐐瑰嚮閫夋嫨鐓х墖"
+                    android:text="Tap to select photo"
                     android:gravity="center"
                     android:textSize="12sp"
                     android:textColor="#9E9E9E" />
             </FrameLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 鎸夐挳鍖哄煙 -->
+        <!-- Button area -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -181,7 +181,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="鍙栨秷"
+                android:text="Cancel"
                 app:cornerRadius="8dp"
                 android:layout_marginEnd="8dp" />
 
@@ -190,7 +190,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:text="淇濆瓨鑽墿"
+                android:text="Save Medication"
                 app:backgroundTint="#4CAF50"
                 app:cornerRadius="8dp" />
         </LinearLayout>
