@@ -12,7 +12,7 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- 浠婃棩鏃ユ湡 -->
+        <!-- Today's date -->
         <TextView
             android:id="@+id/tvTodayDate"
             android:layout_width="match_parent"
@@ -21,7 +21,7 @@
             android:textColor="#757575"
             android:layout_marginBottom="12dp" />
 
-        <!-- 浠婃棩鐘舵€佸崱鐗?-->
+        <!-- Today's status card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardTodayStatus"
             android:layout_width="match_parent"
@@ -43,7 +43,7 @@
                     android:textSize="22sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"
-                    android:text="鈴?浠婃棩灏氭湭鏈嶈嵂" />
+                    android:text="Not taken yet today" />
 
                 <TextView
                     android:id="@+id/tvTakenTime"
@@ -59,7 +59,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="鎷嶇収璁板綍鏈嶈嵂"
+                    android:text="Take Photo to Record"
                     android:textSize="16sp"
                     app:backgroundTint="#FFFFFF"
                     android:textColor="#4CAF50"
@@ -69,7 +69,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 鏈缃嵂鐗╂彁绀哄崱鐗?-->
+        <!-- Setup hint card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardSetupHint"
             android:layout_width="match_parent"
@@ -92,7 +92,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="鈿狅笍 鎮ㄨ繕鏈缃嵂鐗╀俊鎭紝鐐瑰嚮鍓嶅線璁剧疆"
+                    android:text="Setup required: Tap to add medications"
                     android:textSize="14sp"
                     android:textColor="#FF9800" />
 
@@ -100,11 +100,11 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@android:drawable/arrow_up_float"
-                    android:contentDescription="鍓嶅線璁剧疆" />
+                    android:contentDescription="Go to settings" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 鑽墿淇℃伅鍗＄墖 -->
+        <!-- Medication info card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -121,7 +121,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="馃拪 鎴戠殑鑽墿"
+                    android:text="My Medications"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:textColor="#212121"
@@ -145,7 +145,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 缁熻鍗＄墖 -->
+        <!-- Statistics card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -162,7 +162,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="馃搳 鏈嶈嵂缁熻"
+                    android:text="Statistics"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:textColor="#212121"
@@ -181,7 +181,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="鏌ョ湅鍘嗗彶璁板綍"
+                    android:text="View History"
                     app:cornerRadius="8dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
