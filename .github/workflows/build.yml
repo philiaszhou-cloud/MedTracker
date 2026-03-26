@@ -22,29 +22,34 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Cache Gradle packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.gradle/caches
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: ${{ runner.os }}-gradle-
-
     - name: Create local.properties
-      run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+      run: |
+        echo "sdk.dir=$ANDROID_HOME" > local.properties
+        echo "Created local.properties with sdk.dir=$ANDROID_HOME"
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Build debug APK
-      run: ./gradlew assembleDebug --no-daemon --stacktrace
-
-    - name: Check APK output
+    - name: Check gradlew exists
       run: |
-        echo "Checking APK output directory..."
-        ls -la app/build/outputs/apk/debug/; echo "APK directory not found"
-        find . -name "*.apk" -type f 2>/dev/null; echo "No APK files found"
+        ls -la gradlew
+        head -20 gradlew
+
+    - name: Build debug APK
+      run: |
+        echo "Starting build..."
+        ./gradlew assembleDebug --no-daemon 2>&1; {
+          echo "Build failed, showing error output"
+          cat app/build/outputs/logs/manifest-merger-debug-report.txt 2>/dev/null; true
+        }
+
+    - name: Find and list APK files
+      run: |
+        echo "Searching for APK files..."
+        find . -name "*.apk" -type f -ls 2>/dev/null; echo "No APK files found"
 
     - name: Upload APK
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: MedTracker-debug-APK
