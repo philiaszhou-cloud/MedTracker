@@ -12,7 +12,7 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- 鑽墿鍒楄〃鍖哄煙 -->
+        <!-- Medication list area -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -37,7 +37,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="馃拪 鎴戠殑鑽墿"
+                        android:text="My Medications"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:textColor="#212121" />
@@ -54,7 +54,7 @@
                     android:id="@+id/tvMedEmpty"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="鏆傛湭娣诲姞鑽墿锛岀偣鍑讳笅鏂规寜閽坊鍔?
+                    android:text="No medications added yet. Tap the button below to add."
                     android:textSize="14sp"
                     android:textColor="#9E9E9E"
                     android:gravity="center"
@@ -71,13 +71,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="+ 娣诲姞鑽墿"
+                    android:text="+ Add Medication"
                     app:backgroundTint="#4CAF50"
                     app:cornerRadius="8dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 鎻愰啋璁剧疆鍖哄煙 -->
+        <!-- Reminder settings area -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -93,7 +93,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="鈴?鏈嶈嵂鎻愰啋"
+                    android:text="Medication Reminders"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="#212121"
@@ -103,7 +103,7 @@
                     android:id="@+id/tvReminderEmpty"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="鏆傛棤鎻愰啋锛岀偣鍑讳笅鏂规寜閽坊鍔?
+                    android:text="No reminders set. Tap the button below to add."
                     android:textSize="14sp"
                     android:textColor="#9E9E9E"
                     android:gravity="center"
@@ -121,7 +121,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="+ 娣诲姞鎻愰啋鏃堕棿"
+                    android:text="+ Add Reminder Time"
                     app:backgroundTint="#2196F3"
                     app:cornerRadius="8dp" />
             </LinearLayout>
