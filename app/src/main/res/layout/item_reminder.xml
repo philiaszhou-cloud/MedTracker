@@ -8,7 +8,7 @@
     android:padding="12dp"
     android:gravity="center_vertical">
 
-    <!-- 鏃堕棿 -->
+    <!-- Time -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -31,14 +31,14 @@
             android:textColor="#757575" />
     </LinearLayout>
 
-    <!-- 寮€鍏?-->
+    <!-- Switch -->
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/switchReminder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp" />
 
-    <!-- 鍒犻櫎 -->
+    <!-- Delete -->
     <ImageButton
         android:id="@+id/btnDeleteReminder"
         android:layout_width="36dp"
@@ -46,6 +46,6 @@
         android:src="@android:drawable/ic_menu_delete"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:tint="#F44336"
-        android:contentDescription="鍒犻櫎鎻愰啋" />
+        android:contentDescription="Delete reminder" />
 
 </LinearLayout>
