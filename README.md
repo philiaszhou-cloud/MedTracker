@@ -68,7 +68,7 @@ com.medtracker.app/
 
 ## 项目文件位置
 
-`c:\Users\ThinkPad\WorkBuddy\20260326092742\MedTracker\`
+`MedTracker/`
 
 ## 如何编译运行
 
@@ -100,4 +100,4 @@ cd MedTracker
 - 提醒在重启后会自动重新注册（通过 BOOT_COMPLETED）
 
 
--- Updated at 2026-03-26 23:15:14
+<!-- Updated at 2026-03-26 23:15:14 -->
