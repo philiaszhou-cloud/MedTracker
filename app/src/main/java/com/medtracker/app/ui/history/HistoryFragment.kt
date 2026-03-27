@@ -31,7 +31,7 @@ class HistoryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = HistoryAdapter { record ->
-            // 鐐瑰嚮鏌ョ湅澶у浘
+            // 点击查看大图
             val bundle = Bundle().apply {
                 putString("photo_path", record.photoPath)
                 putString("date", record.date)
@@ -48,7 +48,7 @@ class HistoryFragment : Fragment() {
         viewModel.recentRecords.observe(viewLifecycleOwner) { records ->
             adapter.submitList(records)
             val takenCount = records.count { it.isTaken }
-            binding.tvStats.text = "鏈€杩?${records.size} 澶?路 宸叉湇鑽?$takenCount 澶?路 瀹屾垚鐜?${
+            binding.tvStats.text = "最近 ${records.size} 天 · 已服药 $takenCount 天 · 完成率 ${
                 if (records.isEmpty()) 0 else (takenCount * 100 / records.size)
             }%"
             binding.tvEmpty.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
