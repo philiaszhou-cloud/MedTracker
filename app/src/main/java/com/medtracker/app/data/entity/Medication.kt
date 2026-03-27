@@ -4,18 +4,18 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /**
- * 鑽墿淇℃伅瀹炰綋
+ * 药物信息实体
  */
 @Entity(tableName = "medications")
 data class Medication(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val name: String,           // 鑽墿鍚嶇О
-    val color: String,          // 棰滆壊鎻忚堪锛堝锛氱櫧鑹层€侀粍鑹层€佺矇绾㈣壊绛夛級
-    val shape: String,          // 褰㈢姸鎻忚堪锛堝锛氬渾褰€佹き鍦嗗舰銆佽兌鍥婄瓑锛?
-    val colorCode: Int,         // 棰滆壊RGB浠ｇ爜锛岀敤浜嶶I灞曠ず
-    val dosage: String,         // 鍓傞噺锛堝锛?鐗囥€?鐗囷級
-    val notes: String = "",     // 澶囨敞
-    val photoPath: String = "", // 鍗曠墖鑽墿鍙傝€冪収鐗囪矾寰?
-    val order: Int = 0          // 鎺掑垪椤哄簭
+    val name: String,           // 药物名称
+    val color: String,          // 颜色描述（如：白色、黄色、粉红色等）
+    val shape: String,          // 形状描述（如：圆形、椭圆形、胶囊等）
+    val colorCode: Int,         // 颜色RGB代码，用于UI展示
+    val dosage: String,         // 剂量（如：1片、2片）
+    val notes: String = "",     // 备注
+    val photoPath: String = "", // 单片药物参考照片路径
+    val order: Int = 0          // 排列顺序
 )
