@@ -19,22 +19,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val recordDao = db.medicationRecordDao()
     private val reminderDao = db.reminderDao()
 
-    // 鎵€鏈夎嵂鐗╁垪琛?
+    // 所有药物列表
     val medications: LiveData<List<Medication>> = medicationDao.getAllMedications()
 
-    // 鎵€鏈夋彁閱?
+    // 所有提醒
     val reminders: LiveData<List<Reminder>> = reminderDao.getAllReminders()
 
-    // 浠婃棩璁板綍
+    // 今日记录
     fun getTodayRecord(): LiveData<MedicationRecord?> {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         return recordDao.getRecordByDateLive(today)
     }
 
-    // 鏈€杩?0鏉¤褰?
+    // 最近30条记录
     val recentRecords: LiveData<List<MedicationRecord>> = recordDao.getRecentRecords(30)
 
-    // ---- 鑽墿鎿嶄綔 ----
+    // ---- 药物操作 ----
     fun insertMedication(medication: Medication) = viewModelScope.launch {
         medicationDao.insertMedication(medication)
     }
@@ -47,7 +47,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         medicationDao.deleteMedication(medication)
     }
 
-    // ---- 璁板綍鎿嶄綔 ----
+    // ---- 记录操作 ----
     fun saveRecord(record: MedicationRecord) = viewModelScope.launch {
         recordDao.insertRecord(record)
     }
@@ -56,7 +56,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return recordDao.getRecordByDate(date)
     }
 
-    // ---- 鎻愰啋鎿嶄綔 ----
+    // ---- 提醒操作 ----
     fun insertReminder(reminder: Reminder) = viewModelScope.launch {
         reminderDao.insertReminder(reminder)
     }
