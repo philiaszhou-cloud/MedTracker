@@ -31,7 +31,7 @@ class PhotoViewFragment : Fragment() {
         val takenTime = arguments?.getString("taken_time") ?: ""
 
         binding.tvPhotoDate.text = date
-        binding.tvPhotoTime.text = if (takenTime.isNotEmpty()) "鏈嶈嵂鏃堕棿锛?takenTime" else ""
+        binding.tvPhotoTime.text = if (takenTime.isNotEmpty()) "服药时间：$takenTime" else ""
 
         if (photoPath.isNotEmpty()) {
             Glide.with(this)
