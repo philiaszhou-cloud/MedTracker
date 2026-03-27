@@ -40,7 +40,7 @@ class CameraFragment : Fragment() {
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
     private var capturedPhotoPath: String? = null
-    private var isPreviewMode = false  // false=鎷嶇収妯″紡, true=棰勮纭妯″紡
+    private var isPreviewMode = false  // false=拍照模式, true=预览确认模式
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -72,15 +72,15 @@ class CameraFragment : Fragment() {
             findNavController().navigateUp()
         }
 
-        // 鏄剧ず鑽墿鍒楄〃鎻愮ず
+        // 显示药物列表提示
         viewModel.medications.observe(viewLifecycleOwner) { medications ->
             val hint = medications.joinToString("\n") { med ->
-                "鈥?${med.name}锛?{med.color} 路 ${med.shape}锛?
+                "• ${med.name}（${med.color} · ${med.shape}）"
             }
             binding.tvMedHint.text = if (hint.isNotEmpty()) {
-                "璇风‘淇濅互涓嬭嵂鐗╁潎鍦ㄧ収鐗囦腑锛歕n$hint"
+                "请确保以下药物均在照片中：\n$hint"
             } else {
-                "璇峰皢鎵€鏈夎嵂鐗╂斁鍦ㄤ竴璧锋媿鐓?
+                "请将所有药物放在一起拍照"
             }
         }
 
@@ -106,8 +106,8 @@ class CameraFragment : Fragment() {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture)
             } catch (e: Exception) {
-                Log.e("CameraFragment", "鎽勫儚澶寸粦瀹氬け璐?, e)
-                Toast.makeText(requireContext(), "鎽勫儚澶村惎鍔ㄥけ璐?, Toast.LENGTH_SHORT).show()
+                Log.e("CameraFragment", "摄像头绑定失败", e)
+                Toast.makeText(requireContext(), "摄像头启动失败", Toast.LENGTH_SHORT).show()
             }
         }, ContextCompat.getMainExecutor(requireContext()))
     }
@@ -119,7 +119,7 @@ class CameraFragment : Fragment() {
         val timestamp = SimpleDateFormat("HHmmss", Locale.getDefault()).format(Date())
         val fileName = "MedTracker_${today}_${timestamp}.jpg"
 
-        // 淇濆瓨鍒板閮ㄥ瓨鍌?
+        // 保存到外部存储
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
             put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
@@ -148,8 +148,8 @@ class CameraFragment : Fragment() {
                 override fun onError(exception: ImageCaptureException) {
                     binding.progressBar.visibility = View.GONE
                     binding.btnCapture.isEnabled = true
-                    Log.e("CameraFragment", "鎷嶇収澶辫触", exception)
-                    Toast.makeText(requireContext(), "鎷嶇収澶辫触锛岃閲嶈瘯", Toast.LENGTH_SHORT).show()
+                    Log.e("CameraFragment", "拍照失败", exception)
+                    Toast.makeText(requireContext(), "拍照失败，请重试", Toast.LENGTH_SHORT).show()
                 }
             }
         )
@@ -161,7 +161,7 @@ class CameraFragment : Fragment() {
         binding.imgPreview.visibility = View.VISIBLE
         binding.layoutCameraActions.visibility = View.GONE
         binding.layoutConfirmActions.visibility = View.VISIBLE
-        binding.tvInstructions.text = "璇风‘璁ょ収鐗囦腑鍖呭惈鎵€鏈夎嵂鐗?
+        binding.tvInstructions.text = "请确认照片中包含所有药物"
 
         uri?.let {
             Glide.with(this).load(it).into(binding.imgPreview)
@@ -174,7 +174,7 @@ class CameraFragment : Fragment() {
         binding.imgPreview.visibility = View.GONE
         binding.layoutCameraActions.visibility = View.VISIBLE
         binding.layoutConfirmActions.visibility = View.GONE
-        binding.tvInstructions.text = "灏嗘墍鏈夎嵂鐗╂斁鍦ㄥ悓涓€鐢婚潰鍐呮媿鐓?
+        binding.tvInstructions.text = "将所有药物放在同一画面内拍照"
     }
 
     private fun retakePhoto() {
@@ -207,7 +207,7 @@ class CameraFragment : Fragment() {
             viewModel.saveRecord(record)
 
             withContext(Dispatchers.Main) {
-                Toast.makeText(requireContext(), "鉁?浠婃棩鏈嶈嵂璁板綍宸蹭繚瀛橈紒", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "✅ 今日服药记录已保存！", Toast.LENGTH_LONG).show()
                 findNavController().navigateUp()
             }
         }
