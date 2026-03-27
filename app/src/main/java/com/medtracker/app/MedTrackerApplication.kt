@@ -19,10 +19,10 @@ class MedTrackerApplication : Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "鏈嶈嵂鎻愰啋",
+                "服药提醒",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "姣忔棩鏈嶈嵂鎻愰啋閫氱煡"
+                description = "每日服药提醒通知"
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 500, 200, 500)
             }
