@@ -36,23 +36,23 @@ class AddMedicationFragment : Fragment() {
     private var selectedPhotoPath: String = ""
     private var editingMedicationId: Long = -1L
 
-    // 棰勮棰滆壊
+    // 预设颜色
     private val colorOptions = listOf(
-        "鐧借壊" to Color.WHITE,
-        "榛勮壊" to Color.parseColor("#FFF176"),
-        "绮夌孩鑹? to Color.parseColor("#F48FB1"),
-        "姗欒壊" to Color.parseColor("#FFAB40"),
-        "钃濊壊" to Color.parseColor("#4FC3F7"),
-        "缁胯壊" to Color.parseColor("#81C784"),
-        "绾㈣壊" to Color.parseColor("#E57373"),
-        "绱壊" to Color.parseColor("#CE93D8"),
-        "妫曡壊" to Color.parseColor("#A1887F"),
-        "鐏拌壊" to Color.parseColor("#B0BEC5")
+        "白色" to Color.WHITE,
+        "黄色" to Color.parseColor("#FFF176"),
+        "粉红色" to Color.parseColor("#F48FB1"),
+        "橙色" to Color.parseColor("#FFAB40"),
+        "蓝色" to Color.parseColor("#4FC3F7"),
+        "绿色" to Color.parseColor("#81C784"),
+        "红色" to Color.parseColor("#E57373"),
+        "紫色" to Color.parseColor("#CE93D8"),
+        "棕色" to Color.parseColor("#A1887F"),
+        "灰色" to Color.parseColor("#B0BEC5")
     )
 
-    // 棰勮褰㈢姸
+    // 预设形状
     private val shapeOptions = listOf(
-        "鍦嗗舰", "妞渾褰?, "鑳跺泭褰?, "闀挎柟褰?, "涓夎褰?, "鑿卞舰", "寮傚舰"
+        "圆形", "椭圆形", "胶囊形", "长方形", "三角形", "菱形", "异形"
     )
 
     private val pickImageLauncher = registerForActivityResult(
@@ -83,21 +83,21 @@ class AddMedicationFragment : Fragment() {
         setupColorPicker()
         setupShapePicker()
 
-        // 鍓傞噺杈撳叆鎻愮ず
-        val dosageOptions = arrayOf("1鐗?, "2鐗?, "3鐗?, "鍗婄墖", "1绮?, "2绮?, "1棰?, "2棰?)
+        // 剂量输入提示
+        val dosageOptions = arrayOf("1片", "2片", "3片", "半片", "1粒", "2粒", "1颗", "2颗")
         val dosageAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, dosageOptions)
         binding.etDosage.setAdapter(dosageAdapter)
 
-        // 閫夋嫨鐓х墖
+        // 选择照片
         binding.cardMedPhoto.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             pickImageLauncher.launch(intent)
         }
 
-        // 濡傛灉鏄紪杈戞ā寮忥紝鍔犺浇宸叉湁鏁版嵁
+        // 如果是编辑模式，加载已有数据
         if (editingMedicationId != -1L) {
-            binding.tvTitle.text = "缂栬緫鑽墿"
-            binding.btnSave.text = "淇濆瓨淇敼"
+            binding.tvTitle.text = "编辑药物"
+            binding.btnSave.text = "保存修改"
             loadExistingMedication()
         }
 
@@ -140,7 +140,7 @@ class AddMedicationFragment : Fragment() {
             }
             binding.chipGroupShapes.addView(chip)
         }
-        // 榛樿閫変腑绗竴涓?
+        // 默认选中第一个
         (binding.chipGroupShapes.getChildAt(0) as? Chip)?.isChecked = true
     }
 
@@ -171,12 +171,12 @@ class AddMedicationFragment : Fragment() {
         val dosage = binding.etDosage.text?.toString()?.trim() ?: ""
 
         if (name.isEmpty()) {
-            binding.tilMedName.error = "璇疯緭鍏ヨ嵂鐗╁悕绉?
+            binding.tilMedName.error = "请输入药物名称"
             return
         }
 
-        // 鑾峰彇閫変腑鐨勯鑹插悕绉?
-        var colorName = "鐧借壊"
+        // 获取选中的颜色名称
+        var colorName = "白色"
         for (i in 0 until binding.chipGroupColors.childCount) {
             val chip = binding.chipGroupColors.getChildAt(i) as? Chip
             if (chip?.isChecked == true) {
@@ -185,8 +185,8 @@ class AddMedicationFragment : Fragment() {
             }
         }
 
-        // 鑾峰彇閫変腑鐨勫舰鐘?
-        var shapeName = "鍦嗗舰"
+        // 获取选中的形状
+        var shapeName = "圆形"
         for (i in 0 until binding.chipGroupShapes.childCount) {
             val chip = binding.chipGroupShapes.getChildAt(i) as? Chip
             if (chip?.isChecked == true) {
@@ -201,17 +201,17 @@ class AddMedicationFragment : Fragment() {
             color = colorName,
             shape = shapeName,
             colorCode = selectedColorCode,
-            dosage = dosage.ifEmpty { "1鐗? },
+            dosage = dosage.ifEmpty { "1片" },
             notes = binding.etNotes.text?.toString()?.trim() ?: "",
             photoPath = selectedPhotoPath
         )
 
         if (editingMedicationId != -1L) {
             viewModel.updateMedication(medication)
-            Toast.makeText(requireContext(), "鑽墿淇℃伅宸叉洿鏂?, Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "药物信息已更新", Toast.LENGTH_SHORT).show()
         } else {
             viewModel.insertMedication(medication)
-            Toast.makeText(requireContext(), "鑽墿銆?name銆嶅凡娣诲姞", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "药物「$name」已添加", Toast.LENGTH_SHORT).show()
         }
 
         findNavController().navigateUp()
