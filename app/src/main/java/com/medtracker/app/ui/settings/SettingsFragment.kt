@@ -39,12 +39,12 @@ class SettingsFragment : Fragment() {
         setupMedicationList()
         setupReminderList()
 
-        // 娣诲姞鑽墿
+        // 添加药物
         binding.btnAddMedication.setOnClickListener {
             findNavController().navigate(R.id.action_settingsFragment_to_addMedicationFragment)
         }
 
-        // 娣诲姞鎻愰啋
+        // 添加提醒
         binding.btnAddReminder.setOnClickListener {
             showAddReminderDialog()
         }
@@ -63,13 +63,13 @@ class SettingsFragment : Fragment() {
             },
             onDelete = { medication ->
                 MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("鍒犻櫎鑽墿")
-                    .setMessage("纭畾瑕佸垹闄ゃ€?{medication.name}銆嶅悧锛?)
-                    .setPositiveButton("鍒犻櫎") { _, _ ->
+                    .setTitle("删除药物")
+                    .setMessage("确定要删除「${medication.name}」吗？")
+                    .setPositiveButton("删除") { _, _ ->
                         viewModel.deleteMedication(medication)
-                        Snackbar.make(binding.root, "宸插垹闄?${medication.name}", Snackbar.LENGTH_SHORT).show()
+                        Snackbar.make(binding.root, "已删除 ${medication.name}", Snackbar.LENGTH_SHORT).show()
                     }
-                    .setNegativeButton("鍙栨秷", null)
+                    .setNegativeButton("取消", null)
                     .show()
             }
         )
@@ -82,7 +82,7 @@ class SettingsFragment : Fragment() {
         viewModel.medications.observe(viewLifecycleOwner) { medications ->
             medicationAdapter.submitList(medications)
             binding.tvMedEmpty.visibility = if (medications.isEmpty()) View.VISIBLE else View.GONE
-            binding.tvMedCount.text = "宸茶缃?${medications.size}/5 绉嶈嵂鐗?
+            binding.tvMedCount.text = "已设置 ${medications.size}/5 种药物"
         }
     }
 
@@ -101,7 +101,7 @@ class SettingsFragment : Fragment() {
             onDelete = { reminder ->
                 viewModel.deleteReminder(reminder)
                 ReminderScheduler.cancelReminder(requireContext(), reminder.id)
-                Snackbar.make(binding.root, "宸插垹闄ゆ彁閱?, Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "已删除提醒", Snackbar.LENGTH_SHORT).show()
             }
         )
 
@@ -126,17 +126,17 @@ class SettingsFragment : Fragment() {
         val labelEdit = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etLabel)
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("娣诲姞鎻愰啋鏃堕棿")
+            .setTitle("添加提醒时间")
             .setView(dialogView)
-            .setPositiveButton("娣诲姞") { _, _ ->
+            .setPositiveButton("添加") { _, _ ->
                 val hour = timePicker.hour
                 val minute = timePicker.minute
-                val label = labelEdit.text?.toString()?.ifBlank { "鏈嶈嵂鎻愰啋" } ?: "鏈嶈嵂鎻愰啋"
+                val label = labelEdit.text?.toString()?.ifBlank { "服药提醒" } ?: "服药提醒"
 
                 val reminder = Reminder(hour = hour, minute = minute, label = label)
                 viewModel.insertReminder(reminder)
 
-                // 娉ㄥ唽鎻愰啋锛堟彃鍏ュ悗鑾峰彇ID闇€瑕佸紓姝ワ紝姝ゅ鍏堟敞鍐屼复鏃讹級
+                // 注册提醒（插入后获取ID需要异步，此处先注册临时）
                 viewModel.reminders.value?.let { reminders ->
                     val newReminder = reminders.find { it.hour == hour && it.minute == minute }
                     newReminder?.let {
@@ -145,9 +145,9 @@ class SettingsFragment : Fragment() {
                         )
                     }
                 }
-                Snackbar.make(binding.root, "宸叉坊鍔?$hour:${minute.toString().padStart(2,'0')} 鐨勬彁閱?, Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "已添加 $hour:${minute.toString().padStart(2,'0')} 的提醒", Snackbar.LENGTH_SHORT).show()
             }
-            .setNegativeButton("鍙栨秷", null)
+            .setNegativeButton("取消", null)
             .show()
     }
 
