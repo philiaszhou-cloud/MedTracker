@@ -22,31 +22,38 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
+    - name: Accept Android licenses
+      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: ${{ runner.os }}-gradle-
+
     - name: Create local.properties
-      run: |
-        echo "sdk.dir=$ANDROID_HOME" > local.properties
-        echo "Created local.properties with sdk.dir=$ANDROID_HOME"
+      run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Check gradlew exists
-      run: |
-        ls -la gradlew
-        head -20 gradlew
-
     - name: Build debug APK
+      id: build
       run: |
-        echo "Starting build..."
-        ./gradlew assembleDebug --no-daemon 2>&1; {
-          echo "Build failed, showing error output"
-          cat app/build/outputs/logs/manifest-merger-debug-report.txt 2>/dev/null; true
-        }
+        set -o pipefail
+        ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build-output.log
+        echo "build_exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
 
-    - name: Find and list APK files
-      run: |
-        echo "Searching for APK files..."
-        find . -name "*.apk" -type f -ls 2>/dev/null; echo "No APK files found"
+    - name: Upload build log (always)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-log
+        path: build-output.log
+        retention-days: 7
 
     - name: Upload APK
       if: success()
