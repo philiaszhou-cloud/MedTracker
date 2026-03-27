@@ -19,8 +19,8 @@ class HistoryAdapter(
 
         fun bind(record: MedicationRecord) {
             binding.tvDate.text = record.date
-            binding.tvStatus.text = if (record.isTaken) "鉁?宸叉湇鑽? else "鉂?鏈湇鑽?
-            binding.tvTime.text = if (record.takenTime.isNotEmpty()) "鏈嶈嵂鏃堕棿锛?{record.takenTime}" else ""
+            binding.tvStatus.text = if (record.isTaken) "✅ 已服药" else "❌ 未服药"
+            binding.tvTime.text = if (record.takenTime.isNotEmpty()) "服药时间：${record.takenTime}" else ""
             binding.tvTime.visibility = if (record.takenTime.isNotEmpty()) View.VISIBLE else View.GONE
 
             if (record.photoPath.isNotEmpty()) {
@@ -40,7 +40,7 @@ class HistoryAdapter(
                 }
             }
 
-            // 璁剧疆鐘舵€侀鑹?
+            // 设置状态颜色
             val context = binding.root.context
             if (record.isTaken) {
                 binding.cardRecord.strokeColor = context.getColor(com.medtracker.app.R.color.status_taken)
