@@ -47,11 +47,11 @@ abstract class AppDatabase : RoomDatabase() {
         private class DatabaseCallback : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
-                // 鎻掑叆榛樿鎻愰啋鏃堕棿锛堟棭8鐐癸級
+                // 插入默认提醒时间（早8点）
                 INSTANCE?.let { database ->
                     CoroutineScope(Dispatchers.IO).launch {
                         database.reminderDao().insertReminder(
-                            Reminder(hour = 8, minute = 0, label = "鏃╂櫒鏈嶈嵂鎻愰啋")
+                            Reminder(hour = 8, minute = 0, label = "早晨服药提醒")
                         )
                     }
                 }
