@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        // 鏉冮檺澶勭悊缁撴灉
+        // 权限处理结果
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
 
         requestRequiredPermissions()
 
-        // 濡傛灉鏄粠閫氱煡鐐瑰嚮杩涘叆锛岀洿鎺ユ墦寮€鎽勫儚澶?
+        // 如果是从通知点击进入，直接打开摄像头
         if (intent.getBooleanExtra("open_camera", false)) {
             navController.navigate(R.id.action_homeFragment_to_cameraFragment)
         }
