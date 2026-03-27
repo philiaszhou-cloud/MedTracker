@@ -18,7 +18,7 @@ class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             Intent.ACTION_BOOT_COMPLETED -> {
-                // 寮€鏈哄悗閲嶆柊娉ㄥ唽鎵€鏈夋彁閱?
+                // 开机后重新注册所有提醒
                 ReminderScheduler.rescheduleAll(context)
             }
             "com.medtracker.app.MEDICATION_REMINDER" -> {
@@ -28,7 +28,7 @@ class ReminderReceiver : BroadcastReceiver() {
     }
 
     private fun showNotification(context: Context, intent: Intent) {
-        val label = intent.getStringExtra("label") ?: "鏈嶈嵂鎻愰啋"
+        val label = intent.getStringExtra("label") ?: "服药提醒"
 
         val mainIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -41,10 +41,10 @@ class ReminderReceiver : BroadcastReceiver() {
 
         val notification = NotificationCompat.Builder(context, MedTrackerApplication.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_pill)
-            .setContentTitle("馃拪 $label")
-            .setContentText("璇疯寰楁湇鐢ㄦ偍鐨?绉嶈嵂鐗╋紝骞舵媿鐓ц褰曘€?)
+            .setContentTitle("💊 $label")
+            .setContentText("请记得服用您的5种药物，并拍照记录。")
             .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("璇疯寰楁湇鐢ㄦ偍鐨?绉嶈嵂鐗╋紝骞舵媿鐓ц褰曘€傜偣鍑绘墦寮€APP杩涜鎷嶇収纭銆?))
+                .bigText("请记得服用您的5种药物，并拍照记录。点击打开APP进行拍照确认。"))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
@@ -84,7 +84,7 @@ object ReminderScheduler {
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
-            // 濡傛灉鏃堕棿宸茶繃锛岃缃负鏄庡ぉ
+            // 如果时间已过，设置为明天
             if (timeInMillis <= System.currentTimeMillis()) {
                 add(Calendar.DAY_OF_YEAR, 1)
             }
