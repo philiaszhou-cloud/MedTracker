@@ -18,7 +18,7 @@ class MedicationSettingsAdapter(
 
         fun bind(medication: Medication) {
             binding.tvMedName.text = medication.name
-            binding.tvMedDetail.text = "${medication.color} 路 ${medication.shape} 路 ${medication.dosage}"
+            binding.tvMedDetail.text = "${medication.color} · ${medication.shape} · ${medication.dosage}"
             binding.viewColorIndicator.setBackgroundColor(medication.colorCode)
 
             binding.btnEdit.setOnClickListener { onEdit(medication) }
