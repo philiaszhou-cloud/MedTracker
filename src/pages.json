@@ -1,0 +1,110 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "用药助手",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/medication/list",
+      "style": {
+        "navigationBarTitleText": "我的药品",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/medication/add",
+      "style": {
+        "navigationBarTitleText": "添加药品"
+      }
+    },
+    {
+      "path": "pages/medication/detail",
+      "style": {
+        "navigationBarTitleText": "药品详情"
+      }
+    },
+    {
+      "path": "pages/recognize/index",
+      "style": {
+        "navigationBarTitleText": "拍照记录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/history/index",
+      "style": {
+        "navigationBarTitleText": "服药记录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/settings/index",
+      "style": {
+        "navigationBarTitleText": "设置"
+      }
+    },
+    {
+      "path": "pages/index/cyberpunk-demo",
+      "style": {
+        "navigationBarTitleText": "赛博朋克演示",
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "Medtracker",
+    "navigationBarBackgroundColor": "#0D1117",
+    "backgroundColor": "#0D1117"
+  },
+  "tabBar": {
+    "color": "#4A5568",
+    "selectedColor": "#00F0FF",
+    "borderStyle": "black",
+    "backgroundColor": "#080810",
+    "height": "50px",
+    "iconWidth": "24px",
+    "fontSize": "10px",
+    "spacing": "3px",
+
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+          "iconPath": "static/tab/home-v2.png",
+          "selectedIconPath": "static/tab/home-active-v2.png"
+      },
+      {
+        "pagePath": "pages/medication/list",
+        "text": "药品",
+          "iconPath": "static/tab/med-v2.png",
+          "selectedIconPath": "static/tab/med-active-v2.png"
+      },
+      {
+        "pagePath": "pages/recognize/index",
+        "text": "拍照",
+          "iconPath": "static/tab/scan-v2.png",
+          "selectedIconPath": "static/tab/scan-active-v2.png"
+      },
+      {
+        "pagePath": "pages/history/index",
+        "text": "记录",
+          "iconPath": "static/tab/history-v2.png",
+          "selectedIconPath": "static/tab/history-active-v2.png"
+      }
+    ]
+  },
+	"condition" : { //模式配置，仅开发期间生效
+		"current": 0, //当前激活的模式(list 的索引项)
+		"list": [
+			{
+				"name": "", //模式名称
+				"path": "", //启动页面，必选
+				"query": "" //启动参数，在页面的onLoad函数里面得到
+			}
+		]
+	}
+}

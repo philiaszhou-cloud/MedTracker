@@ -1,0 +1,427 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   🎮 CYBERPUNK Design System v2.0 (Icon System Aligned)
+   赛博朋克视觉设计规范
+   色彩令牌：Cyan #00F0FF / Magenta #FF00AA / Blue #00AAFF
+   Green #00FF88 / Orange #FF6600 / Yellow #FFEE00
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 霓虹色板（与图标系统统一） ── */
+$neon-cyan: #00F0FF;           /* 主色 - 首页/导航 */
+$neon-magenta: #FF00AA;       /* 品红 - 药库强调 */
+$neon-blue: #00AAFF;          /* 电蓝 - 辅助色 */
+$neon-green: #00FF88;         /* 成功状态 */
+$neon-orange: #FF6600;        /* 日志/警告 */
+$neon-yellow: #FFEE00;        /* 重点提示 */
+
+/* ── 背景色（深色系，与图标统一） ── */
+$bg-deep: #080810;             /* 深空黑 - 主背景 */
+$bg-card: rgba(16, 18, 30, 0.7);   /* 玻璃卡片（毛玻璃） */
+$bg-card-hover: rgba(24, 28, 48, 0.85); /* 卡片悬停 */
+$bg-overlay: rgba(10, 14, 39, 0.95); /* 遮罩层 */
+
+/* ── 文字色 ── */
+$text-primary: #FFFFFF;         /* 主文本 - 纯白 */
+$text-secondary: #B0B8D4;       /* 次文本 - 冷灰 */
+$text-muted: #6E7A96;          /* 弱文本 - 深灰 */
+
+/* ── 边框与发光 ── */
+$border-glow-pink: rgba(255, 0, 110, 0.3);    /* 粉色霓虹 */
+$border-glow-blue: rgba(0, 217, 255, 0.3);    /* 蓝色霓虹 */
+$border-glow-purple: rgba(143, 0, 255, 0.3);  /* 紫色霓虹 */
+$border-glow-green: rgba(0, 255, 65, 0.3);    /* 绿色霓虹 */
+
+/* ── 字号 ── */
+$font-size-xs: 22rpx;
+$font-size-sm: 26rpx;
+$font-size-base: 30rpx;
+$font-size-lg: 36rpx;
+$font-size-xl: 48rpx;
+$font-size-2xl: 64rpx;
+
+/* ── 圆角（锐角风格） ── */
+$radius-sm: 6rpx;
+$radius-base: 12rpx;
+$radius-lg: 16rpx;
+
+/* ══════════════════════════════════════════════════════════════════════
+   全局基础样式
+   ══════════════════════════════════════════════════════════════════════ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+page {
+  background: linear-gradient(135deg, #0A0E27 0%, #1a1f3a 50%, #0f1535 100%);
+  color: $text-primary;
+  font-family: 'Courier New', monospace;
+  font-size: $font-size-base;
+  min-height: 100vh;
+  position: relative;
+
+  /* 扫描线效果 */
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.03) 0px,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   卡片样式（玻璃拟态 + 霓虹边框）
+   ══════════════════════════════════════════════════════════════════════ */
+
+.card {
+  background: $bg-card;
+  backdrop-filter: blur(10px);
+  border: 2rpx solid rgba(0, 240, 255, 0.18);
+  border-radius: $radius-base;
+  border-radius: $radius-base;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(0, 217, 255, 0.05) 0%, transparent 70%);
+    animation: glow-shift 8s ease-in-out infinite;
+  }
+
+  &:hover {
+    background: $bg-card-hover;
+    border-color: $neon-magenta;
+    box-shadow: 
+      0 0 20px rgba(255, 0, 110, 0.3),
+      0 8px 32px rgba(0, 217, 255, 0.2);
+    transform: translateY(-4rpx);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   按钮样式（霓虹发光）
+   ══════════════════════════════════════════════════════════════════════ */
+
+.btn {
+  padding: 18rpx 32rpx;
+  border-radius: $radius-sm;
+  border: 2rpx solid;
+  font-size: $font-size-base;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 1rpx;
+  text-transform: uppercase;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transition: left 0.3s ease;
+    z-index: -1;
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+
+  /* 品红霓虹按钮 */
+  &.btn-pink {
+    background: rgba(255, 0, 170, 0.1);
+    border-color: $neon-magenta;
+    color: $neon-magenta;
+    box-shadow: 0 0 10px rgba(255, 0, 110, 0.3), inset 0 0 10px rgba(255, 0, 110, 0.1);
+
+    &:hover {
+      background: rgba(255, 0, 110, 0.2);
+      box-shadow: 0 0 20px rgba(255, 0, 110, 0.6), inset 0 0 20px rgba(255, 0, 110, 0.2);
+    }
+
+    &:active {
+      box-shadow: 0 0 30px rgba(255, 0, 110, 0.8), inset 0 0 30px rgba(255, 0, 110, 0.3);
+    }
+  }
+
+  /* 青色霓虹按钮 */
+  &.btn-blue {
+    background: rgba(0, 240, 255, 0.08);
+    border-color: $neon-cyan;
+    color: $neon-cyan;
+    box-shadow: 0 0 10px rgba(0, 217, 255, 0.3), inset 0 0 10px rgba(0, 217, 255, 0.1);
+
+    &:hover {
+      background: rgba(0, 217, 255, 0.2);
+      box-shadow: 0 0 20px rgba(0, 217, 255, 0.6), inset 0 0 20px rgba(0, 217, 255, 0.2);
+    }
+
+    &:active {
+      box-shadow: 0 0 30px rgba(0, 217, 255, 0.8), inset 0 0 30px rgba(0, 217, 255, 0.3);
+    }
+  }
+
+  /* 橙色霓虹按钮 */
+  &.btn-orange {
+    background: rgba(255, 102, 0, 0.1);
+    border-color: $neon-orange;
+    color: $neon-orange;
+    box-shadow: 0 0 10px rgba(143, 0, 255, 0.3), inset 0 0 10px rgba(143, 0, 255, 0.1);
+
+    &:hover {
+      background: rgba(143, 0, 255, 0.2);
+      box-shadow: 0 0 20px rgba(143, 0, 255, 0.6), inset 0 0 20px rgba(143, 0, 255, 0.2);
+    }
+
+    &:active {
+      box-shadow: 0 0 30px rgba(143, 0, 255, 0.8), inset 0 0 30px rgba(143, 0, 255, 0.3);
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   输入框样式
+   ══════════════════════════════════════════════════════════════════════ */
+
+.input-field {
+  background: rgba(8, 12, 22, 0.6);
+  border: 2rpx solid rgba(0, 240, 255, 0.18);
+  border-radius: $radius-sm;
+  padding: 16rpx 20rpx;
+  color: $text-primary;
+  font-family: 'Courier New', monospace;
+  font-size: $font-size-base;
+  transition: all 0.3s ease;
+
+  &:focus {
+    border-color: $neon-cyan;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.35), inset 0 0 10px rgba(0, 240, 255, 0.08);
+    background: rgba(20, 26, 38, 0.8);
+  }
+
+  &::placeholder {
+    color: $text-muted;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   标签和徽章
+   ══════════════════════════════════════════════════════════════════════ */
+
+.tag, .badge {
+  display: inline-block;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  letter-spacing: 0.5rpx;
+  border: 1rpx solid;
+
+  &.tag-pink {
+    background: rgba(255, 0, 170, 0.12);
+    border-color: $neon-magenta;
+    color: $neon-magenta;
+    box-shadow: 0 0 8px rgba(255, 0, 110, 0.3);
+  }
+
+  &.tag-blue {
+    background: rgba(0, 240, 255, 0.12);
+    border-color: $neon-cyan;
+    color: $neon-cyan;
+    box-shadow: 0 0 8px rgba(0, 217, 255, 0.3);
+  }
+
+  &.tag-orange {
+    background: rgba(255, 102, 0, 0.12);
+    border-color: $neon-orange;
+    color: $neon-orange;
+    box-shadow: 0 0 8px rgba(143, 0, 255, 0.3);
+  }
+
+  &.tag-green {
+    background: rgba(0, 255, 136, 0.12);
+    border-color: $neon-green;
+    color: $neon-green;
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   导航栏样式
+   ══════════════════════════════════════════════════════════════════════ */
+
+.nav-bar {
+  background: rgba(12, 14, 24, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 2rpx solid rgba(0, 240, 255, 0.15);
+  padding: 16rpx 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   动画定义
+   ══════════════════════════════════════════════════════════════════════ */
+
+@keyframes glow-shift {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(20rpx, -20rpx);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(0, 240, 255, 0.7);
+  }
+}
+
+@keyframes flicker {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   文本样式
+   ══════════════════════════════════════════════════════════════════════ */
+
+.text-neon-pink {
+  color: $neon-pink;
+  text-shadow: 0 0 8px rgba(255, 0, 110, 0.5);
+}
+
+.text-neon-cyan {
+  color: $neon-cyan;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+}
+
+.text-neon-purple {
+  color: $neon-purple;
+  text-shadow: 0 0 8px rgba(143, 0, 255, 0.5);
+}
+
+.text-muted {
+  color: $text-muted;
+}
+
+.text-secondary {
+  color: $text-secondary;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   工具类
+   ══════════════════════════════════════════════════════════════════════ */
+
+.flex {
+  display: flex;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.gap-small {
+  gap: 12rpx;
+}
+
+.gap-medium {
+  gap: 20rpx;
+}
+
+.gap-large {
+  gap: 32rpx;
+}
+
+.mt { margin-top: 20rpx; }
+.mb { margin-bottom: 20rpx; }
+.ml { margin-left: 20rpx; }
+.mr { margin-right: 20rpx; }
+
+.p { padding: 20rpx; }
+.pt { padding-top: 20rpx; }
+.pb { padding-bottom: 20rpx; }
+.pl { padding-left: 20rpx; }
+.pr { padding-right: 20rpx; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   响应式设计
+   ══════════════════════════════════════════════════════════════════════ */
+
+.container {
+  max-width: 750rpx;
+  margin: 0 auto;
+  padding: 20rpx;
+}
+
+.safe-area {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+$radius-lg: 28rpx;
+$radius-xl: 36rpx;
+
+/* ── 渐变预设（极光主题）── */
+$gradient-aurora: linear-gradient(135deg, #1A2332 0%, #1E1A2E 100%);
+$gradient-frost: linear-gradient(135deg, #64B5F6 0%, #9575CD 100%);
+$gradient-sunset: linear-gradient(135deg, #CE93D8 0%, #E57373 100%);
+$gradient-dawn: linear-gradient(180deg, rgba(100,181,246,0.05) 0%, transparent 100%);

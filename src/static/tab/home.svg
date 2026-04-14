@@ -1,0 +1,11 @@
+<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 屋顶 -->
+  <path d="M24 6 L4 24 L10 24 L10 42 L38 42 L38 24 L44 24 Z" stroke="#5B7C8D" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+  <!-- 门 -->
+  <rect x="19" y="28" width="10" height="14" rx="1" stroke="#5B7C8D" stroke-width="2" fill="none"/>
+  <!-- 门把手 -->
+  <circle cx="27" cy="35" r="1.2" fill="#5B7C8D"/>
+  <!-- 窗户 -->
+  <rect x="14" y="26" width="3" height="3" fill="#5B7C8D" opacity="0.6"/>
+  <rect x="31" y="26" width="3" height="3" fill="#5B7C8D" opacity="0.6"/>
+</svg>

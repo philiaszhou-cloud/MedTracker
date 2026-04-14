@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medtracker 赛博朋克图标设计</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg: #0a0a0f;
+    --bg-card: #12121a;
+    --cyan: #00f0ff;
+    --magenta: #ff00aa;
+    --blue: #00aaff;
+    --green: #00ff88;
+    --orange: #ff6600;
+    --yellow: #ffee00;
+    --text: #e0e0e8;
+    --text-dim: #6a6a7a;
+    --grid-line: rgba(0,240,255,0.05);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Orbitron', 'Rajdhani', 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* 网格背景 */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 扫描线效果 */
+  .scanline {
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 24px;
+  }
+
+  /* 标题区 */
+  .header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .header h1 {
+    font-size: 3rem;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--cyan), var(--magenta));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 60px rgba(0,240,255,0.4), 0 0 120px rgba(255,0,170,0.2);
+    animation: titlePulse 3s ease-in-out infinite;
+    margin-bottom: 12px;
+  }
+
+  @keyframes titlePulse {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.2); }
+  }
+
+  .header .subtitle {
+    color: var(--text-dim);
+    font-size: 1rem;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+  }
+
+  .header .version-tag {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 6px 16px;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    background: rgba(0,240,255,0.05);
+  }
+
+  /* 图标展示网格 */
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 32px;
+    margin-bottom: 64px;
+  }
+
+  /* 单个图标卡片 */
+  .icon-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(0,240,255,0.15);
+    padding: 40px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  }
+
+  .icon-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--card-accent, var(--cyan)), transparent);
+    opacity: 0.8;
+  }
+
+  .icon-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--card-accent, var(--cyan));
+    box-shadow: 
+      0 0 30px rgba(0,240,255,0.1),
+      inset 0 0 30px rgba(0,240,255,0.03);
+  }
+
+  /* 角标装饰 */
+  .icon-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    border-bottom: 2px solid var(--card-accent, var(--cyan));
+    border-right: 2px solid var(--card-accent, var(--cyan));
+    opacity: 0.4;
+  }
+
+  .icon-card[data-icon="home"] { --card-accent: var(--cyan); }
+  .icon-card[data-icon="med"] { --card-accent: var(--magenta); }
+  .icon-card[data-icon="scan"] { --card-accent: var(--green); }
+  .icon-card[data-icon="history"] { --card-accent: var(--orange); }
+
+  /* 图标容器 */
+  .icon-wrapper {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 24px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon-wrapper svg {
+    width: 56px;
+    height: 56px;
+    filter: drop-shadow(0 0 12px var(--icon-glow, var(--cyan)));
+    transition: all 0.3s ease;
+  }
+
+  .icon-wrapper:hover svg {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 24px var(--icon-glow, var(--cyan)));
+  }
+
+  /* 外圈装饰环 */
+  .icon-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid var(--icon-ring-color, var(--cyan));
+    opacity: 0.25;
+    animation: ringRotate 8s linear infinite;
+  }
+
+  .icon-ring::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    background: var(--icon-ring-color, var(--cyan));
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--icon-ring-color, var(--cyan));
+  }
+
+  @keyframes ringRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* 角落标记 */
+  .corner-mark {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-color: var(--icon-ring-color, var(--cyan));
+    opacity: 0.5;
+  }
+  .corner-mark.tl { top: 0; left: 0; border-top: 2px solid; border-left: 2px solid; }
+  .corner-mark.tr { top: 0; right: 0; border-top: 2px solid; border-right: 2px solid; }
+  .corner-mark.bl { bottom: 0; left: 0; border-bottom: 2px solid; border-left: 2px solid; }
+  .corner-mark.br { bottom: 0; right: 0; border-bottom: 2px solid; border-right: 2px solid; }
+
+  .icon-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    margin-bottom: 6px;
+    color: var(--icon-text, var(--cyan));
+  }
+
+  .icon-desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .icon-code {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 4px 12px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.08);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  /* Tab 栏模拟预览 */
+  .tab-preview-section {
+    margin-top: 80px;
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--text);
+    margin-bottom: 36px;
+    text-transform: uppercase;
+  }
+
+  .section-title::before,
+  .section-title::after {
+    content: '//';
+    color: var(--cyan);
+    opacity: 0.5;
+    margin: 0 16px;
+  }
+
+  /* 手机模拟器 */
+  .phone-frame {
+    max-width: 400px;
+    margin: 0 auto;
+    background: #000;
+    border-radius: 36px;
+    border: 3px solid rgba(0,240,255,0.2);
+    overflow: hidden;
+    box-shadow: 
+      0 0 60px rgba(0,240,255,0.08),
+      0 40px 80px rgba(0,0,0,0.5);
+    position: relative;
+  }
+
+  .phone-notch {
+    width: 120px;
+    height: 28px;
+    background: #000;
+    border-radius: 0 0 18px 18px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+  }
+
+  .phone-screen {
+    background: linear-gradient(180deg, #0d0d14 0%, #080810 100%);
+    min-height: 520px;
+    position: relative;
+  }
+
+  /* 模拟内容区域 */
+  .mock-content {
+    padding: 24px 20px;
+    min-height: 420px;
+  }
+
+  .mock-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0 20px;
+    border-bottom: 1px solid rgba(0,240,255,0.1);
+  }
+
+  .mock-header-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--cyan);
+  }
+
+  .mock-header-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  .mock-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .mock-card {
+    background: rgba(18,18,26,0.9);
+    border: 1px solid rgba(0,240,255,0.08);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .mock-card-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .mock-card-info { flex: 1; }
+
+  .mock-card-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .mock-card-sub {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  .mock-card-badge {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  /* Tab 栏 */
+  .tab-bar {
+    display: flex;
+    align-items: stretch;
+    background: rgba(6,6,10,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(0,240,255,0.12);
+    position: relative;
+  }
+
+  .tab-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    width: 20%;
+    height: 2px;
+    background: var(--cyan);
+    box-shadow: 0 0 12px var(--cyan);
+    transition: all 0.3s ease;
+  }
+
+  .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .tab-item.active .tab-icon {
+    filter: drop-shadow(0 0 10px currentColor);
+    transform: scale(1.08);
+  }
+
+  .tab-item.active .tab-label {
+    opacity: 1;
+  }
+
+  .tab-item:not(.active) .tab-icon {
+    opacity: 0.35;
+  }
+
+  .tab-item:not(.active) .tab-label {
+    opacity: 0.35;
+  }
+
+  .tab-icon {
+    width: 26px;
+    height: 26px;
+    margin-bottom: 4px;
+    transition: all 0.3s ease;
+    color: inherit;
+  }
+
+  .tab-label {
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    transition: all 0.3s ease;
+    color: inherit;
+  }
+
+  .tab-item[data-tab="home"] { color: var(--cyan); }
+  .tab-item[data-tab="med"] { color: var(--magenta); }
+  .tab-item[data-tab="scan"] { color: var(--green); }
+  .tab-item[data-tab="history"] { color: var(--orange); }
+
+  .tab-item:hover {
+    background: rgba(255,255,255,0.02);
+  }
+
+  /* 颜色规范面板 */
+  .color-specs {
+    margin-top: 80px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .color-swatch {
+    background: var(--bg-card);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 20px;
+    text-align: center;
+  }
+
+  .color-dot {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    margin: 0 auto 12px;
+    position: relative;
+    box-shadow: 0 0 24px currentColor;
+  }
+
+  .color-name {
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+
+  .color-hex {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
+  /* 动画 */
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  @keyframes scanMove {
+    0% { top: 10%; }
+    50% { top: 90%; }
+    100% { top: 10%; }
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 80px;
+    padding: 32px;
+    border-top: 1px solid rgba(0,240,255,0.08);
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  .footer span {
+    color: var(--cyan);
+  }
+
+  /* 响应式 */
+  @media (max-width: 640px) {
+    .header h1 { font-size: 1.8rem; }
+    .container { padding: 24px 16px; }
+    .icon-grid { gap: 16px; }
+    .phone-frame { max-width: 320px; border-radius: 28px; }
+    .phone-screen { min-height: 420px; }
+  }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="scanline"></div>
+
+<div class="container">
+
+  <!-- 标题 -->
+  <header class="header">
+    <h1>⚡ MEDTRACKER</h1>
+    <p class="subtitle">Cyberpunk Icon System v1.0</p>
+    <div class="version-tag">UI DESIGN SPEC // 2026</div>
+  </header>
+
+  <!-- 4个主图标 -->
+  <div class="icon-grid">
+
+    <!-- 首页 -->
+    <div class="icon-card" data-icon="home">
+      <div class="icon-wrapper" style="--icon-glow: var(--cyan); --icon-ring-color: var(--cyan);">
+        <div class="icon-ring"></div>
+        <div class="corner-mark tl"></div>
+        <div class="corner-mark br"></div>
+        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--cyan)">
+          <!-- 六边形房屋底座 -->
+          <polygon points="28,4 52,20 52,44 28,54 4,44 4,20" stroke="currentColor" stroke-width="2" fill="none"/>
+          <polygon points="28,10 46,22 46,42 28,50 10,42 10,22" fill="rgba(0,240,255,0.08)" stroke="currentColor" stroke-width="1" stroke-dasharray="4 2"/>
+          <!-- 屋顶 -->
+          <path d="M28 4 L28 20 M4 20 L52 20" stroke="currentColor" stroke-width="2"/>
+          <!-- 门 -->
+          <rect x="22" y="30" width="12" height="16" rx="1" fill="rgba(0,240,255,0.2)" stroke="currentColor" stroke-width="1.5"/>
+          <!-- 数据节点 -->
+          <circle cx="28" cy="38" r="2" fill="currentColor"/>
+          <circle cx="18" cy="26" r="1.5" fill="currentColor" opacity="0.6"/>
+          <circle cx="38" cy="26" r="1.5" fill="currentColor" opacity="0.6"/>
+          <!-- 电路线 -->
+          <path d="M18 26 L22 30 M38 26 L34 30 M28 30 L28 36" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+          <!-- 顶点光 -->
+          <circle cx="28" cy="4" r="3" fill="currentColor" opacity="0.8"/>
+        </svg>
+      </div>
+      <div class="icon-name" style="color:var(--cyan)">首页 / HOME</div>
+      <p class="icon-desc">六边形数据中枢 · 控制面板入口<br/>Cyan neon circuit house</p>
+      <span class="icon-code">#00F0FF</span>
+    </div>
+
+    <!-- 药库 -->
+    <div class="icon-card" data-icon="med">
+      <div class="icon-wrapper" style="--icon-glow: var(--magenta); --icon-ring-color: var(--magenta);">
+        <div class="icon-ring"></div>
+        <div class="corner-mark tl"></div>
+        <div class="corner-mark br"></div>
+        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--magenta)">
+          <!-- 胶囊主体 - 对角分割 -->
+          <rect x="12" y="22" width="32" height="14" rx="7" transform="rotate(-35 28 29)" fill="none" stroke="currentColor" stroke-width="2"/>
+          <!-- 分割线 -->
+          <line x1="19" y1="37" x2="37" y2="21" stroke="currentColor" stroke-width="1.5"/>
+          <!-- 上半部填充 -->
+          <path d="M17 34 Q20 31 23 33 Q27 36 30 33 Q33 30 36 33 L39 30 L34 24 Q30 27 27 24 Q24 21 20 24 L17 28 Z" fill="rgba(255,0,170,0.25)"/>
+          <!-- 下半部填充 -->
+          <path d="M17 34 L20 38 Q24 41 28 38 Q32 35 36 38 L39 34 Q36 30 33 33 Q29 36 26 33 Q22 30 19 34 Z" fill="rgba(0,170,255,0.25)"/>
+          <!-- 医疗十字 -->
+          <line x1="26" y1="26" x2="30" y2="32" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="30" y1="26" x2="26" y2="32" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <!-- 粒子效果 -->
+          <circle cx="11" cy="18" r="1.5" fill="currentColor" opacity="0.7"/>
+          <circle cx="44" cy="40" r="1" fill="currentColor" opacity="0.5"/>
+          <circle cx="42" cy="16" r="1" fill="#00aaff" opacity="0.6"/>
+          <circle cx="14" cy="42" r="1.2" fill="currentColor" opacity="0.4"/>
+          <!-- 扫描弧线 -->
+          <path d="M8 28 A22 22 0 0 1 14 14" stroke="currentColor" stroke-width="1" fill="none" opacity="0.3" stroke-dasharray="3 3"/>
+        </svg>
+      </div>
+      <div class="icon-name" style="color:var(--magenta)">药库 / MED</div>
+      <p class="icon-desc">双色胶囊 + 数字十字<br/>Magenta-Blue pill matrix</p>
+      <span class="icon-code">#FF00AA / #00AAFF</span>
+    </div>
+
+    <!-- 拍照识别 -->
+    <div class="icon-card" data-icon="scan">
+      <div class="icon-wrapper" style="--icon-glow: var(--green); --icon-ring-color: var(--green);">
+        <div class="icon-ring"></div>
+        <div class="corner-mark tl"></div>
+        <div class="corner-mark br"></div>
+        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--green)">
+          <!-- 取景框外框 -->
+          <rect x="8" y="12" width="40" height="32" rx="2" stroke="currentColor" stroke-width="1.5" stroke-dasharray="6 3" opacity="0.4"/>
+          <!-- 四角括号 -->
+          <path d="M8 20 L8 12 L16 12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="square"/>
+          <path d="M48 20 L48 12 L40 12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="square"/>
+          <path d="M8 36 L8 44 L16 44" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="square"/>
+          <path d="M48 36 L48 44 L40 44" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="square"/>
+          <!-- 激光扫描线 -->
+          <line x1="12" y1="28" x2="44" y2="28" stroke="currentColor" stroke-width="1.5" opacity="0.9">
+            <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
+            <animate attributeName="y1" values="16;40;16" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="y2" values="16;40;16" dur="2s" repeatCount="indefinite"/>
+          </line>
+          <!-- 十字准星 -->
+          <circle cx="28" cy="28" r="6" stroke="currentColor" stroke-width="1" fill="none" opacity="0.6"/>
+          <line x1="28" y1="20" x2="28" y2="24" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="28" y1="32" x2="28" y2="36" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="20" y1="28" x2="24" y2="28" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="32" y1="28" x2="36" y2="28" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="28" cy="28" r="1.5" fill="currentColor"/>
+          <!-- HUD数据点 -->
+          <text x="10" y="49" font-size="5" fill="currentColor" opacity="0.6" font-family="monospace">SCAN</text>
+          <text x="38" y="49" font-size="5" fill="currentColor" opacity="0.6" font-family="monospace">AI</text>
+          <!-- 顶部摄像头指示灯 -->
+          <circle cx="28" cy="8" r="2" fill="#ffee00" opacity="0.8">
+            <animate attributeName="r" values="2;3;2" dur="1s" repeatCount="indefinite"/>
+          </circle>
+        </svg>
+      </div>
+      <div class="icon-name" style="color:var(--green)">识别 / SCAN</div>
+      <p class="icon-desc">HUD取景框 + 激光扫描线<br/>Green viewfinder with AI lock-on</p>
+      <span class="icon-code">#00FF88 / #FFEE00</span>
+    </div>
+
+    <!-- 历史记录 -->
+    <div class="icon-card" data-icon="history">
+      <div class="icon-wrapper" style="--icon-glow: var(--orange); --icon-ring-color: var(--orange);">
+        <div class="icon-ring"></div>
+        <div class="corner-mark tl"></div>
+        <div class="corner-mark br"></div>
+        <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--orange)">
+          <!-- 终端窗口外框 -->
+          <rect x="8" y="10" width="40" height="36" rx="3" stroke="currentColor" stroke-width="1.5" fill="rgba(255,102,0,0.06)" stroke-dasharray="4 3"/>
+          <!-- 标题栏 -->
+          <rect x="8" y="10" width="40" height="7" rx="3" fill="rgba(255,102,0,0.15)"/>
+          <path d="M11 13.5 L8 10 L8 17 Z" fill="rgba(255,102,0,0.08)"/>
+          <!-- 窗口按钮 -->
+          <circle cx="14" cy="13.5" r="1.3" fill="#ff4444" opacity="0.8"/>
+          <circle cx="19" cy="13.5" r="1.3" fill="#ffee00" opacity="0.8"/>
+          <circle cx="24" cy="13.5" r="1.3" fill="#00ff88" opacity="0.8"/>
+          <!-- 日志条目 -->
+          <rect x="13" y="21" width="20" height="3" rx="1.5" fill="currentColor" opacity="0.9"/>
+          <rect x="13" y="27" width="28" height="3" rx="1.5" fill="currentColor" opacity="0.55"/>
+          <rect x="13" y="33" width="16" height="3" rx="1.5" fill="currentColor" opacity="0.35"/>
+          <!-- 时间戳点 -->
+          <circle cx="37" cy="22.5" r="1.5" fill="#00ff88" opacity="0.8"/>
+          <circle cx="45" cy="28.5" r="1.5" fill="#ff00aa" opacity="0.8"/>
+          <circle cx="33" cy="34.5" r="1.5" color="var(--cyan)" fill="#00f0ff" opacity="0.6"/>
+          <!-- 光标闪烁 -->
+          <rect x="31" y="33" width="2" height="3" rx="0.5" fill="currentColor">
+            <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+          </rect>
+          <!-- 底部装饰 -->
+          <text x="10" y="48" font-size="4.5" fill="currentColor" opacity="0.45" font-family="monospace">HISTORY.LOG</text>
+        </svg>
+      </div>
+      <div class="icon-name" style="color:var(--orange)">日志 / HISTORY</div>
+      <p class="icon-desc">终端窗口 + 日志条目 + 光标<br/>Orange data terminal with log entries</p>
+      <span class="icon-code">#FF6600</span>
+    </div>
+
+  </div>
+
+  <!-- Tab栏模拟预览 -->
+  <section class="tab-preview-section">
+    <h2 class="section-title">Tab Bar Preview</h2>
+
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="mock-content">
+          <div class="mock-header">
+            <span class="mock-header-title">MEDTRACKER</span>
+            <span class="mock-header-time">22:34</span>
+          </div>
+
+          <div class="mock-cards">
+            <div class="mock-card">
+              <div class="mock-card-dot" style="background:#00ff88;"></div>
+              <div class="mock-card-info">
+                <div class="mock-card-name">阿莫西林胶囊</div>
+                <div class="mock-card-sub">下次服用：明天 08:00</div>
+              </div>
+              <div class="mock-card-badge" style="background:rgba(0,255,136,0.15);color:#00ff88;">正常</div>
+            </div>
+            <div class="mock-card">
+              <div class="mock-card-dot" style="background:#ff6600;"></div>
+              <div class="mock-card-info">
+                <div class="mock-card-name">布洛芬缓释片</div>
+                <div class="mock-card-sub">库存不足：剩余 3 片</div>
+              </div>
+              <div class="mock-card-badge" style="background:rgba(255,102,0,0.15);color:#ff6600;">低库存</div>
+            </div>
+            <div class="mock-card">
+              <div class="mock-card-dot" style="background:#ff00aa;"></div>
+              <div class="mock-card-info">
+                <div class="mock-card-name">维生素C泡腾片</div>
+                <div class="mock-card-sub">已过期，建议处理</div>
+              </div>
+              <div class="mock-card-badge" style="background:rgba(255,0,170,0.15);color:#ff00aa;">过期</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab栏 -->
+        <nav class="tab-bar">
+          <div class="tab-item active" data-tab="home">
+            <svg class="tab-icon" viewBox="0 0 56 56" fill="none">
+              <polygon points="28,6 48,19 48,41 28,51 8,41 8,19" stroke="currentColor" stroke-width="2.5" fill="none"/>
+              <rect x="21" y="30" width="14" height="13" rx="1.5" fill="currentColor" opacity="0.3" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="28" cy="37" r="2" fill="currentColor"/>
+              <circle cx="28" cy="6" r="2.5" fill="currentColor"/>
+            </svg>
+            <span class="tab-label">首页</span>
+          </div>
+          <div class="tab-item" data-tab="med">
+            <svg class="tab-icon" viewBox="0 0 56 56" fill="none">
+              <rect x="12" y="22" width="32" height="14" rx="7" transform="rotate(-35 28 29)" fill="none" stroke="currentColor" stroke-width="2.5"/>
+              <line x1="19" y1="37" x2="37" y2="21" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="26" y1="26" x2="30" y2="32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="30" y1="26" x2="26" y2="32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+            <span class="tab-label">药库</span>
+          </div>
+          <div class="tab-item" data-tab="scan">
+            <svg class="tab-icon" viewBox="0 0 56 56" fill="none">
+              <path d="M12 18 L12 12 L20 12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="square"/>
+              <path d="M44 18 L44 12 L36 12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="square"/>
+              <path d="M12 38 L12 44 L20 44" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="square"/>
+              <path d="M44 38 L44 44 L36 44" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="square"/>
+              <circle cx="28" cy="28" r="5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              <circle cx="28" cy="28" r="1.5" fill="currentColor"/>
+              <line x1="16" y1="28" x2="40" y2="28" stroke="currentColor" stroke-width="1" opacity="0.4" stroke-dasharray="3 2"/>
+              <line x1="28" y1="16" x2="28" y2="40" stroke="currentColor" stroke-width="1" opacity="0.4" stroke-dasharray="3 2"/>
+            </svg>
+            <span class="tab-label">识别</span>
+          </div>
+          <div class="tab-item" data-tab="history">
+            <svg class="tab-icon" viewBox="0 0 56 56" fill="none">
+              <!-- 终端窗口 -->
+              <rect x="10" y="12" width="36" height="32" rx="3" stroke="currentColor" stroke-width="2" fill="none"/>
+              <!-- 标题栏 -->
+              <line x1="10" y1="20" x2="46" y2="20" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+              <!-- 窗口按钮 -->
+              <circle cx="16" cy="16" r="1.8" fill="currentColor" opacity="0.7"/>
+              <circle cx="22" cy="16" r="1.8" fill="currentColor" opacity="0.5"/>
+              <!-- 日志行 -->
+              <line x1="15" y1="27" x2="33" y2="27" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="15" y1="34" x2="41" y2="34" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+              <line x1="15" y1="40" x2="27" y2="40" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+              <!-- 光标 -->
+              <rect x="29" y="38.5" width="2.5" height="3" rx="0.5" fill="currentColor">
+                <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+              </rect>
+            </svg>
+            <span class="tab-label">日志</span>
+          </div>
+        </nav>
+      </div>
+    </div>
+  </section>
+
+  <!-- 色彩规范 -->
+  <section class="color-specs">
+    <h2 class="section-title">Color Tokens</h2>
+
+    <div class="color-swatch">
+      <div class="color-dot" style="background: #00f0ff; color: #00f0ff;"></div>
+      <div class="color-name">Cyber Cyan</div>
+      <div class="color-hex">#00F0FF</div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-dot" style="background: #ff00aa; color: #ff00aa;"></div>
+      <div class="color-name">Neon Magenta</div>
+      <div class="color-hex">#FF00AA</div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-dot" style="background: #00aaff; color: #00aaff;"></div>
+      <div class="color-name">Electric Blue</div>
+      <div class="color-hex">#00AAFF</div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-dot" style="background: #00ff88; color: #00ff88;"></div>
+      <div class="color-name">Matrix Green</div>
+      <div class="color-hex">#00FF88</div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-dot" style="background: #ff6600; color: #ff6600;"></div>
+      <div class="color-name">Signal Orange</div>
+      <div class="color-hex">#FF6600</div>
+    </div>
+    <div class="color-swatch">
+      <div class="color-dot" style="background: #ffee00; color: #ffee00;"></div>
+      <div class="color-name">Warning Yellow</div>
+      <div class="color-hex">#FFEE00</div>
+    </div>
+  </section>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <p><span>MEDTRACKER</span> CYBERPUNK UI DESIGN SYSTEM // ICON SET v1.0</p>
+    <p style="margin-top:8px; opacity:0.5;">Designed for uni-app · SVG Native · WCAG AA Ready</p>
+  </footer>
+
+</div>
+
+</body>
+</html>

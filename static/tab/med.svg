@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- 胶囊主体 - 普通态暗色 -->
+  <rect x="11" y="19" width="26" height="12" rx="6" transform="rotate(-33 24 25)" fill="none" stroke="#4A5568" stroke-width="2"/>
+  <line x1="17" y1="33" x2="31" y2="17" stroke="#4A5568" stroke-width="1.5"/>
+  <line x1="23" y1="23" x2="27" y2="29" stroke="#4A5568" stroke-width="2" stroke-linecap="round"/>
+  <line x1="27" y1="23" x2="23" y2="29" stroke="#4A5568" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="10" cy="15" r="1.2" fill="#4A5568" opacity="0.4"/>
+  <circle cx="38" cy="35" r="1" fill="#4A5568" opacity="0.3"/>
+</svg>

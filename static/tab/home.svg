@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- 六边形房屋底座 -->
+  <polygon points="24,5 42,17 42,37 24,45 6,37 6,17" stroke="#4A5568" stroke-width="2" fill="none"/>
+  <polygon points="24,10 38,19 38,35 24,42 10,35 10,19" fill="rgba(0,240,255,0.06)" stroke="#4A5568" stroke-width="1" stroke-dasharray="3 2"/>
+  <path d="M24 5 L24 18 M6 17 L42 17" stroke="#4A5568" stroke-width="1.5"/>
+  <rect x="19" y="26" width="10" height="12" rx="1.5" fill="rgba(74,85,104,0.15)" stroke="#4A5568" stroke-width="1.5"/>
+  <circle cx="24" cy="32" r="1.8" fill="#4A5568"/>
+  <circle cx="16" cy="22" r="1.2" fill="#4A5568" opacity="0.4"/>
+  <circle cx="32" cy="22" r="1.2" fill="#4A5568" opacity="0.4"/>
+</svg>
