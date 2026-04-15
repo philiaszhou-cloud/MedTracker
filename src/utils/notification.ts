@@ -27,12 +27,18 @@ import { getDailyDosage, calcDaysRemaining } from './index';
 
 const NOTIFICATION_CHANNEL_ID = 'med_reminder';
 const NOTIFICATION_CHANNEL_NAME = '用药提醒';
+const REMINDER_BROADCAST_ACTION = 'com.medtracker.REMINDER_ALARM';
 
 /** Intent extra key：用于标识这是由闹钟触发的 */
 const EXTRA_REMINDER_KEY = 'med_reminder';
 
+/** 通知 id extra key：用于确保同一提醒有稳定通知 id */
+const EXTRA_NOTIFICATION_ID = 'med_reminder_notification_id';
+
 /** 已注册的 requestCode 列表（用于清除） */
 let registeredRequestCodes: number[] = [];
+let alarmReminderReceiver: any = null;
+let alarmReceiverRegistered = false;
 
 /** 存储 key：持久化 requestCode 列表，防止重启/热更新丢失 */
 const ALARM_CODES_KEY = 'medreminder_registered_alarm_codes';
@@ -88,9 +94,12 @@ function getNextTriggerDate(timeStr: string, advanceMinutes: number = 0): Date {
   return trigger;
 }
 
-/** 为药品+时间生成稳定的 requestCode */
-function generateRequestCode(medName: string, timeStr: string): number {
-  const str = medName + '_' + timeStr;
+/**
+ * 为药品+时间生成稳定的 requestCode
+ * ★ 使用 medId（而非 medName）作为 key，避免同名药品在相同提醒时间产生碰撞
+ */
+function generateRequestCode(medId: string, timeStr: string): number {
+  const str = medId + '_' + timeStr;
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = ((hash << 5) - hash) + str.charCodeAt(i);
@@ -111,22 +120,62 @@ export function requestNotificationPermission(): Promise<boolean> {
       const Build = plus.android.importClass('android.os.Build');
       const sdkInt = plus.android.invoke(Build, 'VERSION.SDK_INT') as number;
 
-      // console.log(`[Notification] Android SDK 版本: ${sdkInt}`);
-
-      // Android 13+ (API 33+) 请求 POST_NOTIFICATIONS 权限
-      if (sdkInt >= 33) {
+      const isNotificationEnabled = (): boolean => {
         try {
-          const ActivityCompat = plus.android.importClass('androidx.core.app.ActivityCompat');
-          (ActivityCompat as any).requestPermissions(main, ['android.permission.POST_NOTIFICATIONS'], 1001);
+          if (sdkInt < 24) return true;
+          const Context = plus.android.importClass('android.content.Context');
+          const nm = main.getSystemService((Context as any).NOTIFICATION_SERVICE) as any;
+          return nm ? !!nm.areNotificationsEnabled() : true;
+        } catch (e) {
+          console.warn('[Notification] 读取通知权限状态失败:', e);
+          return true;
+        }
+      };
+
+      const ensureExactAlarmPermission = (): void => {
+        if (sdkInt < 31) return;
+        try {
+          const Context = plus.android.importClass('android.content.Context');
+          const Settings = plus.android.importClass('android.provider.Settings');
+          const Intent = plus.android.importClass('android.content.Intent');
+          const Uri = plus.android.importClass('android.net.Uri');
+          const alarmManager = main.getSystemService((Context as any).ALARM_SERVICE) as any;
+          const canSchedule = alarmManager?.canScheduleExactAlarms ? !!alarmManager.canScheduleExactAlarms() : true;
+          if (canSchedule) return;
+
+          const intent = new (Intent as any)((Settings as any).ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+          const packageUri = (Uri as any).parse(`package:${main.getPackageName()}`);
+          intent.setData(packageUri);
+          intent.addFlags((Intent as any).FLAG_ACTIVITY_NEW_TASK);
+          main.startActivity(intent);
+          console.warn('[Notification] 未授予精确闹钟权限，已打开系统设置页');
+        } catch (e) {
+          console.warn('[Notification] 请求精确闹钟权限失败:', e);
+        }
+      };
+
+      ensureExactAlarmPermission();
+
+      if (sdkInt >= 33 && !isNotificationEnabled()) {
+        try {
+          plus.android.requestPermissions(
+            ['android.permission.POST_NOTIFICATIONS'],
+            (_result: any) => resolve(isNotificationEnabled()),
+            (err: any) => {
+              console.warn('[Notification] POST_NOTIFICATIONS 请求失败:', err);
+              resolve(isNotificationEnabled());
+            },
+          );
+          return;
         } catch (e) {
           console.warn('[Notification] POST_NOTIFICATIONS 请求失败:', e);
         }
       }
 
-      resolve(true);
+      resolve(isNotificationEnabled());
     } catch (e) {
       console.warn('[Notification] 权限异常:', e);
-      resolve(true);
+      resolve(false);
     }
     // #endif
 
@@ -134,6 +183,119 @@ export function requestNotificationPermission(): Promise<boolean> {
     resolve(true);
     // #endif
   });
+}
+
+function getReminderBroadcastAction(main: any): string {
+  try {
+    const packageName = main?.getPackageName ? main.getPackageName() : '';
+    return packageName ? `${packageName}.${REMINDER_BROADCAST_ACTION}` : REMINDER_BROADCAST_ACTION;
+  } catch {
+    return REMINDER_BROADCAST_ACTION;
+  }
+}
+
+function buildReminderPayload(
+  medName: string,
+  dosage: number | string,
+  timeStr: string,
+): { title: string; content: string; medName: string; timeStr: string; timestamp: number } {
+  return {
+    title: '💊 用药提醒',
+    content: `${timeStr} 该服用 ${medName} 了，剂量 ${dosage}`,
+    medName,
+    timeStr,
+    timestamp: Date.now(),
+  };
+}
+
+function sendSystemNotification(title: string, content: string, notifId?: number): void {
+  try {
+    const main = (plus.android as any).runtimeMainActivity();
+    const Context = plus.android.importClass('android.content.Context');
+    const NotificationCompat = plus.android.importClass('androidx.core.app.NotificationCompat');
+    const nm = main.getSystemService((Context as any).NOTIFICATION_SERVICE) as any;
+
+    const id = notifId ?? Math.floor(Math.random() * 100000);
+    const builder = new (NotificationCompat as any).Builder(main, NOTIFICATION_CHANNEL_ID);
+    builder.setContentTitle(title);
+    builder.setContentText(content);
+    builder.setSmallIcon(17301651);
+    builder.setAutoCancel(true);
+    builder.setPriority((NotificationCompat as any).PRIORITY_HIGH);
+    builder.setDefaults((NotificationCompat as any).DEFAULT_ALL);
+
+    try {
+      const PendingIntent = plus.android.importClass('android.app.PendingIntent');
+      const Intent = plus.android.importClass('android.content.Intent');
+      const launchIntent = main.getPackageManager().getLaunchIntentForPackage(main.getPackageName());
+      if (launchIntent) {
+        launchIntent.addFlags((Intent as any).FLAG_ACTIVITY_NEW_TASK | (Intent as any).FLAG_ACTIVITY_CLEAR_TOP);
+        const pi = (PendingIntent as any).getActivity(
+          main,
+          id,
+          launchIntent,
+          (PendingIntent as any).FLAG_UPDATE_CURRENT | (PendingIntent as any).FLAG_IMMUTABLE,
+        );
+        builder.setContentIntent(pi);
+      }
+    } catch {}
+
+    nm.notify(id, builder.build());
+    console.log(`[Notification] NotificationCompat 已推送: ${title}`);
+  } catch (e) {
+    console.error('[Notification] NotificationCompat 发送失败:', e);
+  }
+}
+
+function registerAlarmReceiver(): boolean {
+  // #ifdef APP-PLUS
+  if (alarmReceiverRegistered && alarmReminderReceiver) {
+    return true;
+  }
+
+  try {
+    const main = (plus.android as any).runtimeMainActivity();
+    const context = main.getApplicationContext ? main.getApplicationContext() : main;
+    const IntentFilter = plus.android.importClass('android.content.IntentFilter');
+    const filter = new (IntentFilter as any)();
+    filter.addAction(getReminderBroadcastAction(main));
+
+    alarmReminderReceiver = plus.android.implements('android.content.BroadcastReceiver', {
+      onReceive: (_context: any, intent: any) => {
+        try {
+          const reminderJson = intent?.getStringExtra ? intent.getStringExtra(EXTRA_REMINDER_KEY) : '';
+          if (!reminderJson) return;
+
+          const reminderData = JSON.parse(reminderJson) as { title: string; content: string };
+          let notifId = 0;
+          try {
+            notifId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, 0);
+          } catch {}
+
+          sendSystemNotification(reminderData.title, reminderData.content, notifId || undefined);
+        } catch (e) {
+          console.error('[Notification] BroadcastReceiver 处理提醒失败:', e);
+        }
+      },
+    });
+
+    context.registerReceiver(alarmReminderReceiver, filter);
+    alarmReceiverRegistered = true;
+    console.log('[Notification] 原生 BroadcastReceiver 已注册');
+    return true;
+  } catch (e) {
+    alarmReminderReceiver = null;
+    alarmReceiverRegistered = false;
+    console.error('[Notification] 注册 BroadcastReceiver 失败，将回退旧链路:', e);
+    return false;
+  }
+  // #endif
+
+  return false;
+}
+
+export function ensureAlarmReceiverRegistered(): boolean {
+  return registerAlarmReceiver();
 }
 
 // ─────────────────────────────────────────────
@@ -208,41 +370,7 @@ export function sendLocalNotification(title: string, content: string, notifId?: 
   }
 
   // 通道 2：NotificationCompat — 始终执行，不依赖 Push 模块
-  try {
-    const main = (plus.android as any).runtimeMainActivity();
-    const Context = plus.android.importClass('android.content.Context');
-    const NotificationCompat = plus.android.importClass('androidx.core.app.NotificationCompat');
-    const nm = main.getSystemService((Context as any).NOTIFICATION_SERVICE) as any;
-
-    const id = notifId ?? Math.floor(Math.random() * 100000);
-    const builder = new (NotificationCompat as any).Builder(main, NOTIFICATION_CHANNEL_ID);
-    builder.setContentTitle(title);
-    builder.setContentText(content);
-    builder.setSmallIcon(17301651); // android.R.drawable.ic_dialog_info
-    builder.setAutoCancel(true);
-    builder.setPriority((NotificationCompat as any).PRIORITY_HIGH);
-    builder.setDefaults((NotificationCompat as any).DEFAULT_ALL);
-
-    // 点击通知后打开 App
-    try {
-      const PendingIntent = plus.android.importClass('android.app.PendingIntent');
-      const Intent = plus.android.importClass('android.content.Intent');
-      const launchIntent = main.getPackageManager().getLaunchIntentForPackage(main.getPackageName());
-      if (launchIntent) {
-        launchIntent.addFlags((Intent as any).FLAG_ACTIVITY_NEW_TASK | (Intent as any).FLAG_ACTIVITY_CLEAR_TOP);
-        const pi = (PendingIntent as any).getActivity(main, id, launchIntent,
-          (PendingIntent as any).FLAG_UPDATE_CURRENT | (PendingIntent as any).FLAG_IMMUTABLE);
-        builder.setContentIntent(pi);
-      }
-    } catch (e2) {
-      // 即使设置点击Intent失败，通知本身仍然有效
-    }
-
-    nm.notify(id, builder.build());
-    console.log(`[Notification] NotificationCompat 已推送: ${title}`);
-  } catch (e) {
-    console.error('[Notification] NotificationCompat 发送失败:', e);
-  }
+  sendSystemNotification(title, content, notifId);
   // #endif
 
   // #ifdef H5
@@ -315,6 +443,7 @@ function schedulePushNotification(
  * 优势：App 在后台时也能弹出通知，不需要启动 Activity。
  */
 function scheduleAlarmWithNotification(
+  medId: string,
   medName: string,
   dosage: number | string,
   timeStr: string,
@@ -323,53 +452,49 @@ function scheduleAlarmWithNotification(
   // #ifdef APP-PLUS
   try {
     const main = (plus.android as any).runtimeMainActivity();
+    const context = main.getApplicationContext ? main.getApplicationContext() : main;
     const Context = plus.android.importClass('android.content.Context');
     const AlarmManager = plus.android.importClass('android.app.AlarmManager');
     const PendingIntent = plus.android.importClass('android.app.PendingIntent');
     const Intent = plus.android.importClass('android.content.Intent');
 
     const triggerDate = getNextTriggerDate(timeStr, advanceMinutes);
-    const requestCode = generateRequestCode(medName, timeStr);
+    const requestCode = generateRequestCode(medId, timeStr);
     const triggerTime = triggerDate.getTime();
 
-    // 获取 App 的启动 Intent — 闹钟触发时启动 Activity
-    const launchIntent = main.getPackageManager().getLaunchIntentForPackage(main.getPackageName());
-    if (!launchIntent) {
-      console.error('[Notification] 无法获取启动 Intent');
+    const receiverReady = registerAlarmReceiver();
+    if (!receiverReady) {
+      console.error('[Notification] BroadcastReceiver 未就绪，无法设置原生广播提醒');
       return false;
     }
 
-    const title = '💊 用药提醒';
-    const content = `${timeStr} 该服用 ${medName} 了，剂量 ${dosage}`;
+    const payload = buildReminderPayload(medName, dosage, timeStr);
 
-    // 创建闹钟 Intent — 启动 Activity 并携带提醒数据
-    const alarmIntent = new (Intent as any)(launchIntent);
-    alarmIntent.addFlags((Intent as any).FLAG_ACTIVITY_NEW_TASK | (Intent as any).FLAG_ACTIVITY_CLEAR_TOP);
-    alarmIntent.putExtra(EXTRA_REMINDER_KEY, JSON.stringify({
-      title,
-      content,
-      medName,
-      timeStr,
-      timestamp: Date.now(),
-    }));
-    alarmIntent.setAction((Intent as any).ACTION_MAIN);
+    const alarmIntent = new (Intent as any)(getReminderBroadcastAction(main));
+    alarmIntent.setPackage(main.getPackageName());
+    alarmIntent.putExtra(EXTRA_REMINDER_KEY, JSON.stringify(payload));
+    alarmIntent.putExtra(EXTRA_NOTIFICATION_ID, requestCode);
 
-    const pendingIntent = (PendingIntent as any).getActivity(
-      main,
+    const pendingIntent = (PendingIntent as any).getBroadcast(
+      context,
       requestCode,
       alarmIntent,
-      (PendingIntent as any).FLAG_UPDATE_CURRENT | (PendingIntent as any).FLAG_IMMUTABLE
+      (PendingIntent as any).FLAG_UPDATE_CURRENT | (PendingIntent as any).FLAG_IMMUTABLE,
     );
 
     // 设置闹钟
     const alarmManager = main.getSystemService((Context as any).ALARM_SERVICE) as any;
+    const canScheduleExact = alarmManager?.canScheduleExactAlarms ? !!alarmManager.canScheduleExactAlarms() : true;
 
     try {
-      if (alarmManager.setExactAndAllowWhileIdle) {
+      if (canScheduleExact && alarmManager.setExactAndAllowWhileIdle) {
         alarmManager.setExactAndAllowWhileIdle((AlarmManager as any).RTC_WAKEUP, triggerTime, pendingIntent);
-      } else if (alarmManager.setExact) {
+      } else if (canScheduleExact && alarmManager.setExact) {
         alarmManager.setExact((AlarmManager as any).RTC_WAKEUP, triggerTime, pendingIntent);
       } else {
+        if (!canScheduleExact) {
+          console.warn('[Notification] 精确闹钟权限缺失，当前提醒将降级为普通闹钟');
+        }
         alarmManager.set((AlarmManager as any).RTC_WAKEUP, triggerTime, pendingIntent);
       }
     } catch (alarmErr) {
@@ -406,34 +531,43 @@ function clearAllAlarms(): void {
 
   try {
     const main = (plus.android as any).runtimeMainActivity();
+    const context = main.getApplicationContext ? main.getApplicationContext() : main;
     const Context = plus.android.importClass('android.content.Context');
     const AlarmManager = plus.android.importClass('android.app.AlarmManager');
     const PendingIntent = plus.android.importClass('android.app.PendingIntent');
     const Intent = plus.android.importClass('android.content.Intent');
     const alarmManager = main.getSystemService((Context as any).ALARM_SERVICE) as any;
 
-    // ★ 关键修复：必须用与 scheduleAlarm 完全相同的方式构建 Intent
-    const launchIntent = main.getPackageManager().getLaunchIntentForPackage(main.getPackageName());
-    if (!launchIntent) {
-      console.warn('[Notification] clearAllAlarms: 无法获取启动 Intent，跳过清除');
-      registeredRequestCodes = [];
-      persistAlarmCodes();
-      return;
-    }
-
     for (const rc of codesToClear) {
-      const emptyIntent = new (Intent as any)(launchIntent);
-      emptyIntent.addFlags((Intent as any).FLAG_ACTIVITY_NEW_TASK | (Intent as any).FLAG_ACTIVITY_CLEAR_TOP);
-      emptyIntent.setAction((Intent as any).ACTION_MAIN); // 必须与 scheduleAlarm 一致
-      const pendingIntent = (PendingIntent as any).getActivity(
-        main,
+      const broadcastIntent = new (Intent as any)(getReminderBroadcastAction(main));
+      broadcastIntent.setPackage(main.getPackageName());
+      const broadcastPendingIntent = (PendingIntent as any).getBroadcast(
+        context,
         rc,
-        emptyIntent,
-        (PendingIntent as any).FLAG_NO_CREATE | (PendingIntent as any).FLAG_IMMUTABLE
+        broadcastIntent,
+        (PendingIntent as any).FLAG_NO_CREATE | (PendingIntent as any).FLAG_IMMUTABLE,
       );
-      if (pendingIntent) {
-        alarmManager.cancel(pendingIntent);
-        pendingIntent.cancel();
+      if (broadcastPendingIntent) {
+        alarmManager.cancel(broadcastPendingIntent);
+        broadcastPendingIntent.cancel();
+      }
+
+      // 兼容清理旧版 getActivity 闹钟，避免升级后遗留重复提醒
+      const launchIntent = main.getPackageManager().getLaunchIntentForPackage(main.getPackageName());
+      if (launchIntent) {
+        const legacyIntent = new (Intent as any)(launchIntent);
+        legacyIntent.addFlags((Intent as any).FLAG_ACTIVITY_NEW_TASK | (Intent as any).FLAG_ACTIVITY_CLEAR_TOP);
+        legacyIntent.setAction((Intent as any).ACTION_MAIN);
+        const legacyPendingIntent = (PendingIntent as any).getActivity(
+          main,
+          rc,
+          legacyIntent,
+          (PendingIntent as any).FLAG_NO_CREATE | (PendingIntent as any).FLAG_IMMUTABLE,
+        );
+        if (legacyPendingIntent) {
+          alarmManager.cancel(legacyPendingIntent);
+          legacyPendingIntent.cancel();
+        }
       }
     }
 
@@ -594,7 +728,7 @@ export function scheduleMedicationReminder(med: Medication, config: ReminderConf
     const pushOk = schedulePushNotification(med.name, med.dosage, timeStr, config.advanceMinutes ?? 0);
 
     // 通道 2：AlarmManager（始终设置，不依赖 Push 模块）
-    const alarmOk = scheduleAlarmWithNotification(med.name, med.dosage, timeStr, config.advanceMinutes ?? 0);
+    const alarmOk = scheduleAlarmWithNotification(med.id, med.name, med.dosage, timeStr, config.advanceMinutes ?? 0);
 
     if (pushOk || alarmOk) count++;
     // #endif

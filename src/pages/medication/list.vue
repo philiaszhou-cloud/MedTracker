@@ -7,8 +7,8 @@
       <view class="cyber-nav-inner">
         <!-- 左侧角标装饰 -->
         <view class="nav-corner nav-corner-left"></view>
-        <text class="cyber-nav-title">● 药品库</text>
-        <text class="cyber-nav-sub">// MEDICATION_DB</text>
+        <text class="cyber-nav-title">{{ t('medicationList.navTitle') }}</text>
+        <text class="cyber-nav-sub">{{ t('medicationList.navSub') }}</text>
         <view class="nav-corner nav-corner-right"></view>
       </view>
       <!-- 底部发光边条 -->
@@ -21,7 +21,7 @@
         <input 
           class="search-input" 
           v-model="searchText" 
-          placeholder="∇ 搜索药品名称" 
+          :placeholder="t('medicationList.searchPlaceholder')" 
           placeholder-style="color: #BBB; font-size: 32rpx;"
         />
       </view>
@@ -39,14 +39,14 @@
             <view class="med-info">
               <view class="med-name-row">
                 <text class="med-name">{{ med.name }}</text>
-                <view v-if="!med.isActive" class="tag tag-orange">已停用</view>
-                <view v-if="isLowStock(med)" class="tag tag-red">库存不足</view>
+                <view v-if="!med.isActive" class="tag tag-orange">{{ t('medicationList.inactive') }}</view>
+                <view v-if="isLowStock(med)" class="tag tag-red">{{ t('medicationList.lowStock') }}</view>
               </view>
-              <text class="med-spec text-muted text-small">{{ med.specification }} · 每次服 {{ med.dosage }}</text>
+              <text class="med-spec text-muted text-small">{{ med.specification }} · {{ formatDosagePerTime(med.dosage) }}</text>
             </view>
             <view class="med-stock" :class="{ 'low-stock': isLowStock(med) }">
               <text class="stock-num">{{ med.stockCount }}</text>
-              <text class="stock-label">片</text>
+              <text class="stock-label">{{ t('common.pillsUnit') }}</text>
             </view>
           </view>
 
@@ -71,8 +71,8 @@
       <view v-else class="empty-state">
         <view class="icon">●</view>
         <view class="text">
-          <text v-if="searchText">未找到匹配的药品</text>
-          <text v-else>还没有添加药品\n点击下方按钮添加您的第一种药品</text>
+          <text v-if="searchText">{{ t('medicationList.noMatch') }}</text>
+          <text v-else>{{ t('medicationList.empty') }}</text>
         </view>
       </view>
 
@@ -87,12 +87,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
+import { useI18n } from 'vue-i18n';
 import { useMedStore } from '../../stores/index';
 import { getDailyDosage, calcDaysRemaining } from '../../utils';
-import { FREQUENCY_LABELS } from '../../types';
 import type { Medication, FrequencyType } from '../../types';
 
 const store = useMedStore();
+const { t, locale } = useI18n();
 const searchText = ref('');
 
 // 防抖搜索词：用户停止输入 300ms 后才触发列表过滤
@@ -128,7 +129,14 @@ function isLowStock(med: Medication): boolean {
 }
 
 function getFrequencyLabel(freq: string): string {
-  return FREQUENCY_LABELS[freq as FrequencyType] || freq;
+  return t(`frequency.${freq as FrequencyType}`);
+}
+
+function formatDosagePerTime(dosage: string) {
+  if (locale.value === 'en') {
+    return `${dosage} per dose`;
+  }
+  return `每次服 ${dosage}`;
 }
 
 function goToAdd() {

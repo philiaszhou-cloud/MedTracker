@@ -7,9 +7,14 @@
           <text class="nav-title">●  Medtracker</text>
           <text class="nav-subtitle">{{ todayLabel }}</text>
         </view>
-        <view v-if="hasUntakenToday" class="nav-warning-chip">
-          <view class="nav-warning-dot"></view>
-          <text class="nav-warning-text">未服药</text>
+        <view class="nav-actions">
+          <view class="lang-toggle-chip" @tap="toggleLanguage">
+            <text class="lang-toggle-text">{{ languageToggleLabel }}</text>
+          </view>
+          <view v-if="hasUntakenToday" class="nav-warning-chip">
+            <view class="nav-warning-dot"></view>
+            <text class="nav-warning-text">{{ t('home.untakenChip') }}</text>
+          </view>
         </view>
       </view>
     </view>
@@ -18,7 +23,7 @@
       <view v-if="hasUntakenToday" class="pending-alert-banner">
         <view class="pending-alert-icon">!</view>
         <view class="pending-alert-content">
-          <text class="pending-alert-title">今日还有 {{ pendingReminderCount }} 次未服药</text>
+          <text class="pending-alert-title">{{ t('home.pendingAlertTitle', { count: pendingReminderCount }) }}</text>
           <text class="pending-alert-desc">{{ pendingReminderHint }}</text>
         </view>
       </view>
@@ -26,7 +31,7 @@
       <!-- 今日概览卡片 -->
       <view class="overview-card card">
         <view class="overview-header">
-          <text class="card-title">今日用药</text>
+          <text class="card-title">{{ t('home.todayMedication') }}</text>
           <view class="overview-stats">
             <text class="stats-text">{{ todayTakenCount }} / {{ todayTotalCount }}</text>
           </view>
@@ -36,7 +41,7 @@
           <view class="progress-fill" :style="{ width: progressPercent + '%' }"></view>
         </view>
         <text class="progress-text text-muted text-small">
-          {{ progressPercent === 100 ? '✓ 今日已全部完成！' : '还有 ' + (todayTotalCount - todayTakenCount) + ' 次待服药' }}
+          {{ progressText }}
         </text>
       </view>
 
@@ -44,46 +49,46 @@
       <view class="quick-actions">
         <view class="action-btn action-camera" @tap="goToRecognize">
           <view class="action-icon-box">◌</view>
-          <text class="action-text">拍照记录</text>
+          <text class="action-text">{{ t('home.cameraRecord') }}</text>
         </view>
         <view class="action-btn action-add" @tap="goToAddMedication">
           <view class="action-icon-box">＋</view>
-          <text class="action-text">添加药品</text>
+          <text class="action-text">{{ t('home.addMedication') }}</text>
         </view>
         <view class="action-btn action-list" @tap="goToMedicationList">
           <view class="action-icon-box">☰</view>
-          <text class="action-text">药品清单</text>
+          <text class="action-text">{{ t('home.medicationList') }}</text>
         </view>
       </view>
 
       <!-- 每日拍照功能开关 -->
       <view class="card daily-photo-setting-card">
         <view class="setting-header">
-          <text class="card-title">📸 每日拍照记录</text>
+          <text class="card-title">{{ t('home.dailyPhotoRecord') }}</text>
           <view class="toggle-switch" :class="{ on: dailyPhotoConfig.enabled }" @tap="toggleDailyPhotoMode">
             <view class="toggle-knob"></view>
           </view>
         </view>
         
         <view v-if="!dailyPhotoConfig.enabled" class="setting-hint">
-          <text>启用此功能必须每日拍照验证药片数量</text>
+          <text>{{ t('home.dailyPhotoSettingHint') }}</text>
         </view>
 
         <view v-else class="setting-details">
           <view class="detail-item">
-            <text class="detail-label">强制拍照：</text>
+            <text class="detail-label">{{ t('home.requirePhoto') }}：</text>
             <text class="detail-value" :class="{ 'text-warning': dailyPhotoConfig.requireDaily }">
-              {{ dailyPhotoConfig.requireDaily ? '是（必须拍照才能记录）' : '否（可选拍照）' }}
+              {{ dailyPhotoConfig.requireDaily ? t('home.requirePhotoYes') : t('home.requirePhotoNo') }}
             </text>
           </view>
           <view class="detail-item">
-            <text class="detail-label">今日状态：</text>
+            <text class="detail-label">{{ t('home.todayStatus') }}：</text>
             <text class="detail-value" :class="{ 'text-success': todayPhotoStatus, 'text-muted': !todayPhotoStatus }">
-              {{ todayPhotoStatus ? '✓ 已拍照' : '⏳ 未拍照' }}
+              {{ todayPhotoStatus ? t('home.photographed') : t('home.notPhotographed') }}
             </text>
           </view>
           <view class="toggle-row">
-            <text class="toggle-label">强制模式</text>
+            <text class="toggle-label">{{ t('home.forceMode') }}</text>
             <view class="toggle-switch small" :class="{ on: dailyPhotoConfig.requireDaily }" @tap="toggleRequireDaily">
               <view class="toggle-knob"></view>
             </view>
@@ -94,52 +99,52 @@
       <!-- 每日拍照记录卡片 -->
       <view v-if="dailyPhotoConfig.enabled" class="card daily-photo-card" :class="{ 'photo-completed': todayPhotoStatus && todayPhotoStatus.status === 'completed', 'photo-mismatch': todayPhotoStatus && todayPhotoStatus.status === 'mismatch' }">
         <view class="photo-header">
-          <text class="card-title">📸 每日拍照验证</text>
+          <text class="card-title">{{ t('home.dailyPhotoValidation') }}</text>
         </view>
         
         <view v-if="!todayPhotoStatus" class="photo-pending">
-          <text class="photo-status-text">⏳ 今日尚未拍照验证</text>
-          <text class="photo-hint">需拍照所有药片进行校验</text>
+          <text class="photo-status-text">{{ t('home.noPhotoToday') }}</text>
+          <text class="photo-hint">{{ t('home.photoHint') }}</text>
           <view class="btn-photo-record" @tap="goToDailyPhotoRecord">
-            <text>立即拍照</text>
+            <text>{{ t('home.takePhotoNow') }}</text>
           </view>
         </view>
 
         <view v-else class="photo-result">
           <view class="result-row">
-            <text class="result-label">预期数量：</text>
-            <text class="result-value">{{ todayPhotoStatus.expectedCount }} 片</text>
+            <text class="result-label">{{ t('home.expectedCount') }}：</text>
+            <text class="result-value">{{ todayPhotoStatus.expectedCount }} {{ t('common.pillsUnit') }}</text>
           </view>
           <view class="result-row">
-            <text class="result-label">拍照数量：</text>
+            <text class="result-label">{{ t('home.photographedCount') }}：</text>
             <text class="result-value" :class="{ 'text-success': todayPhotoStatus.status === 'completed', 'text-danger': todayPhotoStatus.status === 'mismatch' }">
-              {{ todayPhotoStatus.pillCount }} 片
+              {{ todayPhotoStatus.pillCount }} {{ t('common.pillsUnit') }}
             </text>
           </view>
           <view class="status-badge" :class="'status-' + todayPhotoStatus.status">
-            <text v-if="todayPhotoStatus.status === 'completed'">✓ 校验成功</text>
-            <text v-else-if="todayPhotoStatus.status === 'mismatch'">⚠ 数量不符</text>
+            <text v-if="todayPhotoStatus.status === 'completed'">{{ t('home.validationSuccess') }}</text>
+            <text v-else-if="todayPhotoStatus.status === 'mismatch'">{{ t('home.validationMismatch') }}</text>
           </view>
           <view class="btn-photo-retake" @tap="goToDailyPhotoRecord">
-            <text>重新拍照</text>
+            <text>{{ t('home.retakePhoto') }}</text>
           </view>
         </view>
       </view>
 
       <!-- 库存预警 -->
       <view v-if="stockAlerts.length > 0" class="card alert-card">
-        <view class="card-title text-danger">⚠  库存预警</view>
+        <view class="card-title text-danger">{{ t('home.stockAlert') }}</view>
         <view v-for="alert in stockAlerts" :key="alert.medicationId" class="alert-item">
           <text class="alert-name">{{ alert.medicationName }}</text>
-          <text class="alert-info">剩余 {{ alert.stockCount }} 片，约 {{ alert.daysRemaining }} 天</text>
+          <text class="alert-info">{{ formatStockAlertInfo(alert.stockCount, alert.daysRemaining) }}</text>
         </view>
       </view>
 
       <!-- 今日待办提醒 -->
       <view class="card">
-        <view class="card-title">⏱  今日提醒</view>
+        <view class="card-title">{{ t('home.todayReminders') }}</view>
         <view v-if="todayReminders.length === 0" class="empty-state-mini">
-          <text class="text-muted">暂无提醒，请先添加药品</text>
+          <text class="text-muted">{{ t('home.noReminders') }}</text>
         </view>
         <view v-for="(reminder, index) in todayReminders" :key="index" class="reminder-item" :class="{ done: reminder.status === 'done' }">
           <view class="reminder-left">
@@ -156,7 +161,7 @@
               <text>✓</text>
             </view>
             <view v-else class="btn-take" @tap="confirmTake(reminder)">
-              <text>服药</text>
+              <text>{{ t('home.takeMedication') }}</text>
             </view>
           </view>
         </view>
@@ -168,12 +173,17 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
+import { useI18n } from 'vue-i18n';
 import { useMedStore } from '../../stores/index';
-import { getTodayLabel } from '../../utils';
+import { formatTodayLabel, getAppLocale, setAppLocale } from '../../i18n';
 
 const store = useMedStore();
+const { t, locale } = useI18n();
 
-const todayLabel = getTodayLabel();
+const todayLabel = computed(() => {
+  locale.value;
+  return formatTodayLabel(getAppLocale());
+});
 const todayTakenCount = computed(() => store.todayTakenCount);
 const todayTotalCount = computed(() => store.todayTotalCount);
 const stockAlerts = computed(() => store.stockAlerts);
@@ -185,18 +195,32 @@ const pendingReminders = computed(() =>
 );
 const pendingReminderCount = computed(() => pendingReminders.value.length);
 const hasUntakenToday = computed(() => todayTotalCount.value > 0 && pendingReminderCount.value > 0);
+const languageToggleLabel = computed(() => locale.value === 'en' ? '中文' : 'EN');
 const pendingReminderHint = computed(() => {
   if (pendingReminders.value.length === 0) {
-    return '今日药物已全部完成';
+    return t('home.pendingAlertAllDone');
   }
 
   const nextReminder = pendingReminders.value[0];
-  return `请尽快处理 ${nextReminder.medicationName} ${nextReminder.scheduledTime} 的服药提醒`;
+  return t('home.pendingHint', {
+    name: nextReminder.medicationName,
+    time: nextReminder.scheduledTime,
+  });
 });
 
 const progressPercent = computed(() => {
   if (todayTotalCount.value === 0) return 0;
   return Math.round((todayTakenCount.value / todayTotalCount.value) * 100);
+});
+
+const progressText = computed(() => {
+  if (progressPercent.value === 100) {
+    return t('home.progressDone');
+  }
+
+  return t('home.progressPending', {
+    count: todayTotalCount.value - todayTakenCount.value,
+  });
 });
 
 onShow(() => {
@@ -217,12 +241,14 @@ function toggleRequireDaily() {
 }
 
 function goToRecognize() {
+  store.setRecognizeMode('default');
   uni.switchTab({ url: '/pages/recognize/index' });
 }
 
 function goToDailyPhotoRecord() {
-  // 跳转到拍照识别页面，并标记为每日拍照模式
-  uni.navigateTo({ url: '/pages/recognize/index?mode=daily' });
+  // 识别页在 tabBar 中，不能用 navigateTo 传 query；改为通过 store 传递临时模式
+  store.setRecognizeMode('daily');
+  uni.switchTab({ url: '/pages/recognize/index' });
 }
 
 function goToAddMedication() {
@@ -231,6 +257,18 @@ function goToAddMedication() {
 
 function goToMedicationList() {
   uni.switchTab({ url: '/pages/medication/list' });
+}
+
+function toggleLanguage() {
+  const nextLocale = locale.value === 'en' ? 'zh-Hans' : 'en';
+  setAppLocale(nextLocale);
+}
+
+function formatStockAlertInfo(count: number, days: number) {
+  if (locale.value === 'en') {
+    return `${count} pills left, about ${days} days remaining`;
+  }
+  return `剩余 ${count} 片，约 ${days} 天`;
 }
 
 const confirmingMedId = ref('');
@@ -242,9 +280,9 @@ function confirmTake(reminder: { medicationId: string; medicationName: string; d
   if (dailyPhotoConfig.value.enabled) {
     if (!todayPhotoStatus.value) {
       uni.showModal({
-        title: '需要完成每日拍照验证',
-        content: '启用了每日拍照验证模式，请先拍照所有药片进行校验后再记录服药',
-        confirmText: '去拍照',
+        title: t('home.needDailyPhotoTitle'),
+        content: t('home.needDailyPhotoContent'),
+        confirmText: t('home.goTakePhoto'),
         success: (res) => {
           if (res.confirm) {
             goToDailyPhotoRecord();
@@ -260,10 +298,13 @@ function confirmTake(reminder: { medicationId: string; medicationName: string; d
       // 如果启用了强制拍照模式，则不允许继续记录，必须重新拍照
       if (dailyPhotoConfig.value.requireDaily) {
         uni.showModal({
-          title: '拍照数量与预期不符',
-          content: `预期 ${todayPhotoStatus.value.expectedCount} 片，拍照识别 ${todayPhotoStatus.value.pillCount} 片。已启用强制拍照验证，无法继续记录，请重新拍照。`,
+          title: t('home.mismatchTitle'),
+          content: t('home.mismatchForceContent', {
+            expected: todayPhotoStatus.value.expectedCount,
+            actual: todayPhotoStatus.value.pillCount,
+          }),
           showCancel: false,
-          confirmText: '去拍照',
+          confirmText: t('home.goTakePhoto'),
           success: (res) => {
             if (res.confirm) goToDailyPhotoRecord();
             confirmingMedId.value = '';
@@ -273,10 +314,13 @@ function confirmTake(reminder: { medicationId: string; medicationName: string; d
       }
 
       uni.showModal({
-        title: '拍照数量与预期不符',
-        content: `预期 ${todayPhotoStatus.value.expectedCount} 片，拍照识别 ${todayPhotoStatus.value.pillCount} 片。是否继续记录服药？`,
-        confirmText: '继续',
-        cancelText: '重新拍照',
+        title: t('home.mismatchTitle'),
+        content: t('home.mismatchContinueContent', {
+          expected: todayPhotoStatus.value.expectedCount,
+          actual: todayPhotoStatus.value.pillCount,
+        }),
+        confirmText: t('common.continue'),
+        cancelText: t('home.retakePhoto'),
         success: (res) => {
           if (res.confirm) {
             recordIntakeConfirmed(reminder);
@@ -295,15 +339,15 @@ function confirmTake(reminder: { medicationId: string; medicationName: string; d
 
 function recordIntakeConfirmed(reminder: { medicationId: string; medicationName: string; dosage: string; scheduledTime: string }) {
   uni.showModal({
-    title: '确认服药',
-    content: `确认已服用 ${reminder.medicationName}（${reminder.dosage}）？`,
-    confirmText: '已服用',
+    title: t('home.confirmTakeTitle'),
+    content: t('home.confirmTakeContent', { name: reminder.medicationName, dosage: reminder.dosage }),
+    confirmText: t('home.takenConfirm'),
     confirmColor: '#1976D2',
-    cancelText: '稍后提醒',
+    cancelText: t('home.laterReminder'),
     success: (res) => {
       if (res.confirm) {
         store.recordIntake(reminder.medicationId, 'taken', reminder.scheduledTime);
-        uni.showToast({ title: '已记录 ✓', icon: 'success' });
+        uni.showToast({ title: t('home.takenRecorded'), icon: 'success' });
         speakText(`已记录服用${reminder.medicationName}`);
       }
       confirmingMedId.value = '';
@@ -358,6 +402,32 @@ function speakText(text: string) {
   align-items: center;
   position: relative;
   z-index: 1;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.lang-toggle-chip {
+  min-width: 76rpx;
+  height: 44rpx;
+  padding: 0 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(0, 240, 255, 0.3);
+  background: rgba(0, 240, 255, 0.08);
+  box-shadow: 0 0 16rpx rgba(0, 240, 255, 0.08);
+}
+
+.lang-toggle-text {
+  color: #00F0FF;
+  font-size: 22rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
 }
 
 .nav-title-group {

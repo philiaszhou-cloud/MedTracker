@@ -1,6 +1,12 @@
 // 用药类型
 export type MedicationType = 'daily' | 'temporary';
 
+export interface MedicationIncomingStock {
+  stockCount: number;
+  expiryDate: string;
+  receivedAt: number;
+}
+
 // 药品数据模型
 export interface Medication {
   id: string;
@@ -16,6 +22,8 @@ export interface Medication {
   boxImageUri: string; // 药盒照片（必填）
   pillImageUri: string; // 药片照片（必填）
   expiryDate: string; // 保质期，格式 "YYYY-MM"
+  activeStockCount?: number; // 当前正在使用批次的剩余库存
+  incomingStock?: MedicationIncomingStock; // 已入库但尚未启用的新批次
   imageUri?: string; // 兼容旧字段
   notes?: string; // 备注
   createdAt: number; // 创建时间

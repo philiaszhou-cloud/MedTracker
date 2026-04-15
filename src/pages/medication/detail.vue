@@ -13,19 +13,19 @@
             <view class="toggle-knob"></view>
           </view>
         </view>
-        <text v-if="medication.brand" class="med-brand">品牌 · {{ medication.brand }}</text>
+        <text v-if="medication.brand" class="med-brand">{{ formatBrandPrefix(medication.brand) }}</text>
         <text class="med-spec text-muted">{{ medication.specification }}</text>
         <view class="med-tags mt-20">
           <view class="tag" :class="medication.medicationType === 'temporary' ? 'tag-orange' : 'tag-blue'">
-            {{ medication.medicationType === 'temporary' ? '⚡ 临时用药' : '● 日常用药' }}
+            {{ medication.medicationType === 'temporary' ? t('common.temporaryMedication') : t('common.dailyMedication') }}
           </view>
-          <view class="tag" :class="stockTagClass">库存 {{ medication.stockCount }} 片</view>
+          <view class="tag" :class="stockTagClass">{{ formatStockTag(medication.stockCount) }}</view>
         </view>
       </view>
 
       <!-- 药品照片 -->
       <view class="card" v-if="medication.boxImageUri || medication.pillImageUri">
-        <text class="card-title">⊙ 药品照片</text>
+        <text class="card-title">{{ t('detail.medicationPhotos') }}</text>
         <view class="photo-row">
           <view v-if="medication.boxImageUri" class="photo-item" @tap="previewImage(resolvedBoxUrl || medication.boxImageUri)">
             <image
@@ -34,8 +34,8 @@
               class="photo-thumb"
               @error="onPhotoError($event, 'box')"
             />
-            <text v-if="photoErrors.box && !resolvedBoxUrl" class="photo-error">药盒照片已丢失</text>
-            <text v-else class="photo-label">药盒</text>
+            <text v-if="photoErrors.box && !resolvedBoxUrl" class="photo-error">{{ t('detail.boxPhotoMissing') }}</text>
+            <text v-else class="photo-label">{{ t('detail.boxPhoto') }}</text>
           </view>
           <view v-if="medication.pillImageUri" class="photo-item" @tap="previewImage(resolvedPillUrl || medication.pillImageUri)">
             <image
@@ -44,35 +44,35 @@
               class="photo-thumb"
               @error="onPhotoError($event, 'pill')"
             />
-            <text v-if="photoErrors.pill && !resolvedPillUrl" class="photo-error">药片照片已丢失</text>
-            <text v-else class="photo-label">药片</text>
+            <text v-if="photoErrors.pill && !resolvedPillUrl" class="photo-error">{{ t('detail.pillPhotoMissing') }}</text>
+            <text v-else class="photo-label">{{ t('detail.pillPhoto') }}</text>
           </view>
         </view>
       </view>
 
       <!-- 用药方案 -->
       <view class="card">
-        <text class="card-title">≡ 用药方案</text>
+        <text class="card-title">{{ t('detail.medicationPlan') }}</text>
         <view class="info-row">
-          <text class="info-label">用药类型</text>
+          <text class="info-label">{{ t('common.medicationType') }}</text>
           <text class="info-value" :class="medication.medicationType === 'temporary' ? 'text-orange' : 'text-blue'">
-            {{ medication.medicationType === 'temporary' ? '临时用药' : '日常用药' }}
+            {{ medication.medicationType === 'temporary' ? t('common.temporaryMedication') : t('common.dailyMedication') }}
           </text>
         </view>
         <view class="info-row">
-          <text class="info-label">品牌</text>
-          <text class="info-value">{{ medication.brand || '未填写' }}</text>
+          <text class="info-label">{{ t('common.brand') }}</text>
+          <text class="info-value">{{ medication.brand || t('common.notProvided') }}</text>
         </view>
         <view class="info-row">
-          <text class="info-label">每次剂量</text>
-          <text class="info-value">{{ medication.dosage }} 片</text>
+          <text class="info-label">{{ t('common.dosage') }}</text>
+          <text class="info-value">{{ medication.dosage }} {{ t('common.pillsUnit') }}</text>
         </view>
         <view class="info-row">
-          <text class="info-label">服药频率</text>
+          <text class="info-label">{{ t('common.frequency') }}</text>
           <text class="info-value">{{ getFrequencyLabel(medication.frequency) }}</text>
         </view>
         <view class="info-row">
-          <text class="info-label">提醒时间</text>
+          <text class="info-label">{{ t('common.reminderTime') }}</text>
           <view class="reminder-tags">
             <text v-for="(time, idx) in medication.reminders" :key="idx" class="tag tag-blue">
               {{ time }}
@@ -80,67 +80,92 @@
           </view>
         </view>
         <view class="info-row" v-if="medication.expiryDate">
-          <text class="info-label">保质期</text>
+          <text class="info-label">{{ t('common.expiryDate') }}</text>
           <text class="info-value" :class="expiryClass">{{ formatExpiry(medication.expiryDate) }}</text>
         </view>
         <view v-if="medication.notes" class="info-row">
-          <text class="info-label">备注</text>
+          <text class="info-label">{{ t('common.notes') }}</text>
           <text class="info-value">{{ medication.notes }}</text>
         </view>
       </view>
 
       <!-- 库存信息 -->
       <view class="card">
-        <text class="card-title">◻ 库存信息</text>
+        <text class="card-title">{{ t('detail.stockInfo') }}</text>
         <view class="stock-display">
           <view class="stock-circle" :class="{ 'low': daysRemaining <= 3 }">
             <text class="stock-number">{{ medication.stockCount }}</text>
-            <text class="stock-unit">片</text>
+            <text class="stock-unit">{{ t('common.pillsUnit') }}</text>
           </view>
           <view class="stock-detail">
             <text class="days-text" :class="{ 'text-danger': daysRemaining <= 3 }">
-              {{ daysRemaining <= 0 ? '库存已用完' : `预计可用 ${daysRemaining} 天` }}
+              {{ daysRemaining <= 0 ? t('detail.outOfStock') : formatRemainingDays(daysRemaining) }}
             </text>
-            <text class="text-muted text-small mt-10">每日用量约 {{ dailyUsage }} 片</text>
+            <text class="text-muted text-small mt-10">{{ formatDailyUsage(dailyUsage) }}</text>
+          </view>
+        </view>
+
+        <view v-if="hasIncomingStock" class="incoming-stock-card">
+          <view class="batch-row">
+            <text class="batch-label">{{ t('detail.currentBatch') }}</text>
+            <text class="batch-value">{{ formatBatchSummary(currentBatchStockCount, medication.expiryDate) }}</text>
+          </view>
+          <view class="batch-row">
+            <text class="batch-label">{{ t('detail.incomingBatch') }}</text>
+            <text class="batch-value">{{ formatBatchSummary(incomingStockCount, medication.incomingStock?.expiryDate || '') }}</text>
+          </view>
+          <text class="batch-hint">{{ t('detail.incomingAutoSwitchHint') }}</text>
+          <view class="btn-secondary batch-action-btn" @tap="confirmUseIncomingStock">
+            <text>{{ t('detail.useNewStockNow') }}</text>
           </view>
         </view>
 
         <view class="restock-actions">
           <view class="btn-secondary" @tap="toggleRestockPanel">
-            <text>{{ showRestockPanel ? '收起补库存' : '+ 补充库存' }}</text>
+            <text>{{ showRestockPanel ? t('detail.collapseRestock') : t('detail.expandRestock') }}</text>
           </view>
         </view>
 
         <view v-if="showRestockPanel" class="restock-panel">
-          <text class="restock-title">补库存前，请先确认品牌是否更换</text>
+          <text class="restock-title">{{ t('detail.restockTitle') }}</text>
           <view class="restock-mode-row">
             <view class="restock-mode-btn" :class="{ active: restockMode === 'same' }" @tap="restockMode = 'same'">
-              <text>品牌未更换</text>
+              <text>{{ t('detail.sameBrand') }}</text>
             </view>
             <view class="restock-mode-btn warn" :class="{ active: restockMode === 'changed' }" @tap="restockMode = 'changed'">
-              <text>已更换品牌</text>
+              <text>{{ t('detail.changedBrand') }}</text>
             </view>
           </view>
 
           <view v-if="restockMode === 'same'" class="restock-form">
-            <text class="restock-hint">品牌未更换时，可直接补充需要增加的库存数量。</text>
+            <text class="restock-hint">{{ t('detail.sameBrandHint') }}</text>
             <input
               class="restock-input"
               type="digit"
               :value="restockAmount"
               @input="restockAmount = ($event.detail as any).value"
-              placeholder="请输入增加的片数"
+              :placeholder="t('detail.restockPlaceholder')"
               placeholder-style="color: #8EA0BE; font-size: 30rpx;"
             />
+            <view class="restock-field">
+              <text class="info-label">{{ t('detail.restockExpiryLabel') }}</text>
+              <picker mode="date" fields="month" :value="restockPickerValue" @change="onRestockExpiryChange">
+                <view class="restock-picker">
+                  <text class="restock-picker-text" :class="{ placeholder: !restockExpiryDate }">
+                    {{ restockExpiryDate ? formatExpiry(restockExpiryDate) : t('detail.selectRestockExpiry') }}
+                  </text>
+                </view>
+              </picker>
+            </view>
             <view class="btn-primary restock-confirm-btn" @tap="confirmRestockSameBrand">
-              <text>确认补充库存</text>
+              <text>{{ t('detail.confirmRestock') }}</text>
             </view>
           </view>
 
           <view v-else class="restock-form">
-            <text class="restock-hint warn">检测到品牌更换时，必须重新拍摄药盒和药片照片，并更新品牌信息。</text>
+            <text class="restock-hint warn">{{ t('detail.changedBrandHint') }}</text>
             <view class="btn-primary restock-confirm-btn" @tap="goToBrandChangeEdit">
-              <text>去编辑并重新拍摄</text>
+              <text>{{ t('detail.goEditRetake') }}</text>
             </view>
           </view>
         </view>
@@ -148,7 +173,7 @@
 
       <!-- 最近服药记录 -->
       <view class="card">
-        <text class="card-title">⌛ 近期记录</text>
+        <text class="card-title">{{ t('detail.recentRecords') }}</text>
         <view v-if="recentLogs.length > 0">
           <view v-for="log in recentLogs" :key="log.id" class="log-item">
             <view class="log-dot" :class="log.status"></view>
@@ -159,17 +184,17 @@
           </view>
         </view>
         <view v-else class="empty-state-mini">
-          <text class="text-muted">暂无服药记录</text>
+          <text class="text-muted">{{ t('detail.noRecentRecords') }}</text>
         </view>
       </view>
 
       <!-- 操作按钮 -->
       <view class="action-buttons">
         <view class="btn-secondary" @tap="editMedication">
-          <text>✏ 编辑药品</text>
+          <text>{{ t('detail.editMedication') }}</text>
         </view>
         <view class="btn-danger mt-20" @tap="deleteMedication">
-          <text>✕ 删除药品</text>
+          <text>{{ t('detail.deleteMedication') }}</text>
         </view>
       </view>
     </view>
@@ -177,15 +202,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
+import { useI18n } from 'vue-i18n';
 import { useMedStore } from '../../stores/index';
 import { getDailyDosage, calcDaysRemaining, formatDate, formatTime } from '../../utils';
-import { FREQUENCY_LABELS } from '../../types';
 import type { Medication, IntakeLog, FrequencyType } from '../../types';
 import { loadImageFromStorage, fileToDataUrl, verifyImagePath } from '../../utils/imageStorage';
 
 const store = useMedStore();
+const { t, locale } = useI18n();
 const medicationId = ref('');
 const medication = ref<Medication | null>(null);
 
@@ -195,9 +221,14 @@ const resolvedPillUrl = ref('');
 const showRestockPanel = ref(false);
 const restockMode = ref<'same' | 'changed'>('same');
 const restockAmount = ref('');
+const restockExpiryDate = ref('');
 
 // 照片加载错误状态
 const photoErrors = ref({ box: false, pill: false });
+
+watch(() => locale.value, () => {
+  uni.setNavigationBarTitle({ title: t('nav.medicationDetail') });
+}, { immediate: true });
 
 function onPhotoError(_e: any, type: 'box' | 'pill') {
   // 只在使用原始路径时才标记为错误（即resolvedUrl为空的情况下）
@@ -220,6 +251,22 @@ const dailyUsage = computed(() => {
   return getDailyDosage(medication.value.frequency, medication.value.dosage);
 });
 
+const hasIncomingStock = computed(() => !!medication.value?.incomingStock?.stockCount);
+
+const incomingStockCount = computed(() => medication.value?.incomingStock?.stockCount || 0);
+
+const currentBatchStockCount = computed(() => {
+  if (!medication.value) return 0;
+  if (typeof medication.value.activeStockCount === 'number') {
+    return medication.value.activeStockCount;
+  }
+
+  const queuedStock = medication.value.incomingStock?.stockCount || 0;
+  return queuedStock > 0 ? Math.max(0, medication.value.stockCount - queuedStock) : medication.value.stockCount;
+});
+
+const restockPickerValue = computed(() => restockExpiryDate.value || currentMonthValue());
+
 const stockTagClass = computed(() => {
   return daysRemaining.value <= 3 ? 'tag-red' : 'tag-green';
 });
@@ -241,12 +288,90 @@ function formatExpiry(val: string): string {
   const [y, m] = val.split('-');
   const expiry = new Date(Number(y), Number(m) - 1, 1);
   const now = new Date(); now.setDate(1); now.setHours(0,0,0,0);
+  if (locale.value === 'en') {
+    const monthLabel = expiry.toLocaleString('en-US', { month: 'short' });
+    const base = `${monthLabel} ${y}`;
+    return expiry < now ? `${base} (expired)` : base;
+  }
   if (expiry < now) return `${y}年${parseInt(m)}月（已过期）`;
   return `${y}年${parseInt(m)}月`;
 }
 
 function previewImage(url: string) {
   uni.previewImage({ urls: [url], current: url });
+}
+
+function currentMonthValue() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function syncMedicationFromStore() {
+  if (!medicationId.value) return;
+  medication.value = store.medications.find(item => item.id === medicationId.value) || null;
+}
+
+function formatBrandPrefix(brand: string) {
+  if (locale.value === 'en') {
+    return `Brand · ${brand}`;
+  }
+  return `品牌 · ${brand}`;
+}
+
+function formatStockTag(count: number) {
+  if (locale.value === 'en') {
+    return `Stock ${count} pills`;
+  }
+  return `库存 ${count} 片`;
+}
+
+function formatRemainingDays(count: number) {
+  if (locale.value === 'en') {
+    return `About ${count} days remaining`;
+  }
+  return `预计可用 ${count} 天`;
+}
+
+function formatDailyUsage(count: number) {
+  if (locale.value === 'en') {
+    return `About ${count} pills/day`;
+  }
+  return `每日用量约 ${count} 片`;
+}
+
+function formatBatchSummary(count: number, expiryDate: string) {
+  if (!expiryDate) {
+    return locale.value === 'en' ? `${count} pills` : `${count} 片`;
+  }
+  if (locale.value === 'en') {
+    return `${count} pills · ${formatExpiry(expiryDate)}`;
+  }
+  return `${count} 片 · ${formatExpiry(expiryDate)}`;
+}
+
+function formatUseIncomingStockContent(currentCount: number, incomingCount: number) {
+  if (locale.value === 'en') {
+    return `Using the new stock now will mark the current ${currentCount} pills as lost and switch the app to the newly received ${incomingCount} pills. Continue?`;
+  }
+  return `立即启用新库存后，当前批次剩余的 ${currentCount} 片会按损耗处理，系统将改为使用新入库的 ${incomingCount} 片并更新保质期。是否继续？`;
+}
+
+function formatPendingExpiryConflict(expiryDate: string) {
+  const formattedExpiry = formatExpiry(expiryDate);
+  if (locale.value === 'en') {
+    return `A pending incoming batch with expiry ${formattedExpiry} is already registered. To register a different expiry date, start using that batch first.`;
+  }
+  return `当前已经登记了一批保质期为 ${formattedExpiry} 的新库存。如需登记另一批不同保质期的新库存，请先启用这批新库存。`;
+}
+
+function onRestockExpiryChange(event: any) {
+  restockExpiryDate.value = event.detail.value;
+}
+
+function resetRestockForm() {
+  restockAmount.value = '';
+  restockExpiryDate.value = '';
+  restockMode.value = 'same';
 }
 
 const recentLogs = computed((): IntakeLog[] => {
@@ -264,31 +389,49 @@ onLoad(async (options) => {
     if (medication.value) {
       // ★ v12 增强：兼容旧版 data URL 格式 + 验证路径有效性
       const currentMed = medication.value;
+      const originalBoxPath = currentMed.boxImageUri || '';
+      const originalPillPath = currentMed.pillImageUri || '';
 
       // ★ v12：检测旧版遗留的 data URL 格式（之前版本直接将 base64 存入 form）
-      const boxIsDataUrl = (currentMed.boxImageUri || '').startsWith('data:');
-      const pillIsDataUrl = (currentMed.pillImageUri || '').startsWith('data:');
+      const boxIsDataUrl = originalBoxPath.startsWith('data:');
+      const pillIsDataUrl = originalPillPath.startsWith('data:');
       if (boxIsDataUrl || pillIsDataUrl) {
         console.log('[Detail] ★ 检测到旧版 data URL 格式，正在迁移...');
         // data URL 直接用于显示，但提示用户重新拍照以持久化到磁盘
         uni.showToast({
-          title: '⚠️ 检测到旧格式照片，建议重新拍摄',
+          title: t('detail.legacyPhotoWarning'),
           icon: 'none',
           duration: 3000,
         });
       }
 
       // 验证路径有效性（data URL 视为有效）
-      const boxValid = boxIsDataUrl ? true : await verifyImagePath(currentMed.boxImageUri || '');
-      const pillValid = pillIsDataUrl ? true : await verifyImagePath(currentMed.pillImageUri || '');
+      const verifiedBoxPath = boxIsDataUrl ? originalBoxPath : await verifyImagePath(originalBoxPath);
+      const verifiedPillPath = pillIsDataUrl ? originalPillPath : await verifyImagePath(originalPillPath);
+      const boxValid = !!verifiedBoxPath;
+      const pillValid = !!verifiedPillPath;
+
+      if (verifiedBoxPath && verifiedBoxPath !== currentMed.boxImageUri) {
+        currentMed.boxImageUri = verifiedBoxPath;
+      }
+      if (verifiedPillPath && verifiedPillPath !== currentMed.pillImageUri) {
+        currentMed.pillImageUri = verifiedPillPath;
+      }
+
+      if ((verifiedBoxPath && verifiedBoxPath !== originalBoxPath) || (verifiedPillPath && verifiedPillPath !== originalPillPath)) {
+        store.updateMedication(currentMed.id, {
+          boxImageUri: verifiedBoxPath || '',
+          pillImageUri: verifiedPillPath || '',
+        });
+      }
 
       if (!boxValid && currentMed.boxImageUri && !boxIsDataUrl) {
         console.warn('[Detail] 药盒图片路径已失效:', currentMed.boxImageUri);
-        uni.showToast({ title: '⚠️ 药盒图片已失效，将使用默认图标', icon: 'none', duration: 2500 });
+        uni.showToast({ title: t('detail.invalidBox'), icon: 'none', duration: 2500 });
       }
       if (!pillValid && currentMed.pillImageUri && !pillIsDataUrl) {
         console.warn('[Detail] 药片图片路径已失效:', currentMed.pillImageUri);
-        uni.showToast({ title: '⚠️ 药片图片已失效，将使用默认图标', icon: 'none', duration: 2500 });
+        uni.showToast({ title: t('detail.invalidPill'), icon: 'none', duration: 2500 });
       }
       
       // ★ 修复：确保所有图片加载异步操作都完成后再返回
@@ -305,17 +448,17 @@ onLoad(async (options) => {
                 return;
               }
               // #ifdef H5
-              resolvedBoxUrl.value = await loadImageFromStorage(currentMed.boxImageUri);
+              resolvedBoxUrl.value = await loadImageFromStorage(verifiedBoxPath || '');
               // #endif
               // #ifndef H5
-              resolvedBoxUrl.value = await fileToDataUrl(currentMed.boxImageUri);
+              resolvedBoxUrl.value = await fileToDataUrl(verifiedBoxPath || '');
               if (!resolvedBoxUrl.value) {
-                resolvedBoxUrl.value = currentMed.boxImageUri;
+                resolvedBoxUrl.value = verifiedBoxPath || '';
               }
               // #endif
             } catch (e) {
               console.warn('[Detail] 加载 boxImageUri 失败:', e);
-              resolvedBoxUrl.value = currentMed.boxImageUri;
+              resolvedBoxUrl.value = verifiedBoxPath || '';
             }
           })()
         );
@@ -331,17 +474,17 @@ onLoad(async (options) => {
                 return;
               }
               // #ifdef H5
-              resolvedPillUrl.value = await loadImageFromStorage(currentMed.pillImageUri);
+              resolvedPillUrl.value = await loadImageFromStorage(verifiedPillPath || '');
               // #endif
               // #ifndef H5
-              resolvedPillUrl.value = await fileToDataUrl(currentMed.pillImageUri);
+              resolvedPillUrl.value = await fileToDataUrl(verifiedPillPath || '');
               if (!resolvedPillUrl.value) {
-                resolvedPillUrl.value = currentMed.pillImageUri;
+                resolvedPillUrl.value = verifiedPillPath || '';
               }
               // #endif
             } catch (e) {
               console.warn('[Detail] 加载 pillImageUri 失败:', e);
-              resolvedPillUrl.value = currentMed.pillImageUri;
+              resolvedPillUrl.value = verifiedPillPath || '';
             }
           })()
         );
@@ -361,14 +504,13 @@ onLoad(async (options) => {
 });
 
 function getFrequencyLabel(freq: string): string {
-  return FREQUENCY_LABELS[freq as FrequencyType] || freq;
+  return t(`frequency.${freq as FrequencyType}`);
 }
 
 function toggleRestockPanel() {
   showRestockPanel.value = !showRestockPanel.value;
   if (!showRestockPanel.value) {
-    restockMode.value = 'same';
-    restockAmount.value = '';
+    resetRestockForm();
   }
 }
 
@@ -376,15 +518,64 @@ function confirmRestockSameBrand() {
   if (!medication.value) return;
   const amount = parseInt(restockAmount.value, 10);
   if (isNaN(amount) || amount <= 0) {
-    uni.showToast({ title: '请输入有效的补充数量', icon: 'none' });
+    uni.showToast({ title: t('detail.invalidRestock'), icon: 'none' });
+    return;
+  }
+  if (!restockExpiryDate.value) {
+    uni.showToast({ title: t('detail.invalidRestockExpiry'), icon: 'none' });
     return;
   }
 
-  store.addStock(medication.value.id, amount);
-  restockAmount.value = '';
+  const result = store.addStock(medication.value.id, amount, restockExpiryDate.value);
+  if (!result.ok) {
+    if (result.reason === 'pending_expiry_conflict' && medication.value.incomingStock?.expiryDate) {
+      uni.showModal({
+        title: t('detail.pendingExpiryConflictTitle'),
+        content: formatPendingExpiryConflict(medication.value.incomingStock.expiryDate),
+        showCancel: false,
+        confirmText: t('common.confirm'),
+      });
+      return;
+    }
+
+    const fallbackTitle = result.reason === 'invalid_expiry'
+      ? t('detail.invalidRestockExpiry')
+      : t('detail.invalidRestock');
+    uni.showToast({ title: fallbackTitle, icon: 'none' });
+    return;
+  }
+
+  syncMedicationFromStore();
+  resetRestockForm();
   showRestockPanel.value = false;
-  restockMode.value = 'same';
-  uni.showToast({ title: '库存已更新', icon: 'success' });
+  uni.showToast({
+    title: result.activatedImmediately ? t('detail.stockActivatedImmediately') : t('detail.stockRegistered'),
+    icon: 'success',
+  });
+}
+
+function confirmUseIncomingStock() {
+  if (!medication.value?.incomingStock) return;
+
+  uni.showModal({
+    title: t('detail.useNewStockTitle'),
+    content: formatUseIncomingStockContent(currentBatchStockCount.value, incomingStockCount.value),
+    confirmText: t('detail.useNewStockNow'),
+    confirmColor: '#FF7A59',
+    cancelText: t('common.cancel'),
+    success: (res) => {
+      if (!res.confirm || !medication.value) return;
+
+      const switched = store.useIncomingStock(medication.value.id);
+      if (!switched) {
+        uni.showToast({ title: t('detail.noIncomingStock'), icon: 'none' });
+        return;
+      }
+
+      syncMedicationFromStore();
+      uni.showToast({ title: t('detail.stockActivated'), icon: 'success' });
+    },
+  });
 }
 
 function goToBrandChangeEdit() {
@@ -397,9 +588,9 @@ function goToBrandChangeEdit() {
 function toggleActive() {
   if (medication.value) {
     store.toggleMedication(medication.value.id);
-    medication.value.isActive = !medication.value.isActive;
+    // store.toggleMedication 已通过同一对象引用修改了 isActive，无需手动再次取反
     uni.showToast({
-      title: medication.value.isActive ? '已启用' : '已停用',
+      title: medication.value.isActive ? t('detail.enabled') : t('detail.disabled'),
       icon: 'none',
     });
   }
@@ -410,7 +601,7 @@ function formatLogTime(ts: number): string {
 }
 
 function statusText(status: string): string {
-  const map: Record<string, string> = { taken: '已服药', skipped: '已跳过', missed: '已漏服' };
+  const map: Record<string, string> = { taken: t('common.taken'), skipped: t('common.skipped'), missed: t('common.missed') };
   return map[status] || status;
 }
 
@@ -429,14 +620,14 @@ function editMedication() {
 
 function deleteMedication() {
   uni.showModal({
-    title: '确认删除',
-    content: `确定要删除「${medication.value?.name}」吗？相关服药记录也会一并删除。`,
-    confirmText: '删除',
+    title: t('detail.confirmDeleteTitle'),
+    content: t('detail.confirmDeleteContent', { name: medication.value?.name || '' }),
+    confirmText: t('common.delete'),
     confirmColor: '#D32F2F',
     success: (res) => {
       if (res.confirm && medication.value) {
         store.removeMedication(medication.value.id);
-        uni.showToast({ title: '已删除', icon: 'success' });
+        uni.showToast({ title: t('detail.deleted'), icon: 'success' });
         setTimeout(() => uni.navigateBack(), 1000);
       }
     },
@@ -671,6 +862,46 @@ function deleteMedication() {
   flex: 1;
 }
 
+.incoming-stock-card {
+  margin: 0 24rpx 12rpx;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  background: rgba(255, 122, 89, 0.08);
+  border: 1rpx solid rgba(255, 122, 89, 0.24);
+}
+
+.batch-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 8rpx 0;
+}
+
+.batch-label {
+  color: #FFC4B5;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.batch-value {
+  color: #FFF2E8;
+  font-size: 24rpx;
+  text-align: right;
+  flex: 1;
+}
+
+.batch-hint {
+  display: block;
+  margin-top: 8rpx;
+  color: #FFD5C8;
+  font-size: 22rpx;
+  line-height: 1.6;
+}
+
+.batch-action-btn {
+  margin-top: 18rpx;
+}
+
 .restock-actions {
   margin-top: 12rpx;
 }
@@ -753,6 +984,31 @@ function deleteMedication() {
   color: #E6F7FF;
   font-size: 32rpx;
   box-sizing: border-box;
+}
+
+.restock-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.restock-picker {
+  min-height: 88rpx;
+  padding: 0 24rpx;
+  border-radius: 14rpx;
+  border: 2rpx solid rgba(0, 217, 255, 0.2);
+  background: rgba(15, 21, 53, 0.85);
+  display: flex;
+  align-items: center;
+}
+
+.restock-picker-text {
+  color: #E6F7FF;
+  font-size: 30rpx;
+}
+
+.restock-picker-text.placeholder {
+  color: #8EA0BE;
 }
 
 .restock-confirm-btn {

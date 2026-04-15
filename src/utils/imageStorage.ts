@@ -40,7 +40,7 @@ function openDB(): Promise<IDBDatabase | null> {
 /**
  * 将临时图片路径持久化，返回永久可访问的路径。
  *
- * - App 端：返回 savedFiles 路径（可直接用于 <image>，重启后依然有效）
+ * - App 端：返回 _doc/med_photos 路径（比 savedFiles 更稳定）
  * - H5 端：返回 idb://key（需通过 loadImageFromStorage 还原 blob URL 才能显示）
  * - 如果已经是持久路径，直接返回原路径
  */
@@ -82,7 +82,6 @@ export function isPersistentImagePath(path: string): boolean {
 function isAlreadyPersisted(path: string): boolean {
   return (
     path.includes('_doc/') ||
-    path.includes('savedFiles') ||
     path.includes('wxfile://') ||
     path.includes(PHOTO_DIR) ||
     path.startsWith('idb://')
@@ -94,8 +93,8 @@ function isAlreadyPersisted(path: string): boolean {
 // ─── App-Plus 实现 ────────────────────────────────────────────────────────
 
 /**
- * App 端：使用 uni.saveFile 将临时文件存入本地持久缓存
- * savedFiles 目录是 uni-app 官方持久目录，App 卸载前永久保留
+ * App 端：优先借助 uni.saveFile 获取稳定入口，再统一复制到 _doc/med_photos
+ * 这样可以避免 savedFiles 在部分 Android ROM 上被回收后导致图片丢失
  */
 function persistImageApp(tempPath: string): Promise<string> {
   return new Promise((resolve) => {
@@ -119,10 +118,14 @@ function persistImageApp(tempPath: string): Promise<string> {
       tempFilePath: tempPath,
       success: (res) => {
         if (res.savedFilePath && typeof res.savedFilePath === 'string') {
-          console.log('[imageStorage] App 端保存成功:', res.savedFilePath);
-          // 记录已持久化路径，便于统一清理
-          try { addPersistedImagePath(res.savedFilePath); } catch (e) {}
-          safeResolve(res.savedFilePath);
+          persistImageAppPlusIO(res.savedFilePath).then((stablePath) => {
+            try {
+              if (stablePath && stablePath !== res.savedFilePath && res.savedFilePath.includes('savedFiles')) {
+                uni.removeSavedFile({ filePath: res.savedFilePath, fail: () => {} } as any);
+              }
+            } catch {}
+            safeResolve(stablePath);
+          });
         } else {
           console.warn('[imageStorage] uni.saveFile 返回路径无效，尝试 plus.io:', res);
           persistImageAppPlusIO(tempPath).then(safeResolve);
@@ -136,7 +139,7 @@ function persistImageApp(tempPath: string): Promise<string> {
   });
 }
 
-/** plus.io 方案（uni.saveFile 的 fallback） */
+/** plus.io 方案（统一落盘到 _doc/med_photos） */
 function persistImageAppPlusIO(tempPath: string): Promise<string> {
   return new Promise((resolve) => {
     let settled = false;
@@ -701,7 +704,20 @@ export function verifyImagePath(imagePath: string): Promise<string | null> {
       (plus.io as any).resolveLocalFileSystemURL(
         imagePath,
         () => {
-          // 文件存在，返回原路径
+          if (imagePath.includes('savedFiles')) {
+            persistImageAppPlusIO(imagePath).then((migratedPath) => {
+              if (migratedPath && migratedPath !== imagePath && migratedPath.includes('_doc/')) {
+                try {
+                  uni.removeSavedFile({ filePath: imagePath, fail: () => {} } as any);
+                } catch {}
+                resolve(migratedPath);
+                return;
+              }
+              resolve(imagePath);
+            });
+            return;
+          }
+
           console.log('[imageStorage] 路径有效:', imagePath);
           resolve(imagePath);
         },

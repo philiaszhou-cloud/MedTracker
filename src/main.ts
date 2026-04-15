@@ -1,11 +1,13 @@
 import { createSSRApp } from "vue";
 import App from "./App.vue";
 import { createPinia } from "pinia";
+import { i18n } from './i18n';
 
 export function createApp() {
   const app = createSSRApp(App);
   const pinia = createPinia();
   app.use(pinia);
+  app.use(i18n);
 
   // ★ v14: 全局错误兜底 — 防止未捕获异常导致白屏/死锁
   app.config.errorHandler = (err, vm, info) => {

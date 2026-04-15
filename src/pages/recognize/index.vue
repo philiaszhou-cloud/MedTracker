@@ -10,13 +10,13 @@
           <view class="crosshair-line crosshair-v"></view>
         </view>
         <view class="hud-title-wrap">
-          <text class="cyber-nav-hud-title">◎ 视觉识别</text>
-          <text class="cyber-nav-hud-sub">// VISION_SYSTEM_v2.4</text>
+          <text class="cyber-nav-hud-title">{{ t('recognize.navTitle') }}</text>
+          <text class="cyber-nav-hud-sub">{{ t('recognize.navSub') }}</text>
         </view>
         <!-- 右侧状态指示 -->
         <view class="hud-status-indicator">
           <view class="status-dot"></view>
-          <text class="status-text">ONLINE</text>
+          <text class="status-text">{{ t('recognize.online') }}</text>
         </view>
       </view>
       <view class="hud-scanline-bottom"></view>
@@ -28,21 +28,21 @@
       <view v-if="!imagePath" class="force-shoot-wrap">
         <view class="force-shoot-card">
           <text class="shoot-icon">⊙</text>
-          <text class="shoot-title">请先拍摄药片照片</text>
-          <text class="shoot-desc">将药片平铺在纯色背景板上，保持间距，在光线充足处拍摄</text>
+          <text class="shoot-title">{{ t('recognize.shootTitle') }}</text>
+          <text class="shoot-desc">{{ t('recognize.shootDesc') }}</text>
           <view class="btn-shoot" @tap="shootPhoto">
-            <text>⊙ 立即拍照</text>
+            <text>{{ t('recognize.shootNow') }}</text>
           </view>
           <view class="btn-album" @tap="chooseFromAlbum">
-            <text>◻ 从相册选取</text>
+            <text>{{ t('recognize.chooseAlbum') }}</text>
           </view>
         </view>
         <view class="tips-card">
-          <text class="tips-title">✦ 拍摄建议</text>
-          <text class="tips-item">• 深色背景板效果最佳（黑色/深蓝色）</text>
-          <text class="tips-item">• 药片之间留 1~2 粒间距，不要叠放</text>
-          <text class="tips-item">• 手机垂直朝下，保持平行于药片平面</text>
-          <text class="tips-item">• 光线充足、均匀，避免强烈阴影</text>
+          <text class="tips-title">{{ t('recognize.tipsTitle') }}</text>
+          <text class="tips-item">{{ t('recognize.tip1') }}</text>
+          <text class="tips-item">{{ t('recognize.tip2') }}</text>
+          <text class="tips-item">{{ t('recognize.tip3') }}</text>
+          <text class="tips-item">{{ t('recognize.tip4') }}</text>
         </view>
       </view>
 
@@ -76,10 +76,10 @@
             />
           </view>
           <view class="retake-btn" @tap="retakePhoto">
-            <text>🔄 重拍</text>
+            <text>{{ t('recognize.retake') }}</text>
           </view>
           <view class="save-badge" :class="saveFailed ? 'badge-fail' : (savedToAlbum ? 'badge-ok' : 'badge-wait')">
-            <text>{{ saveFailed ? '✗ 保存失败' : (savedToAlbum ? '✓ 已保存' : '保存中…') }}</text>
+            <text>{{ saveFailed ? t('recognize.saveFailed') : (photoSource === 'album' ? t('recognize.fromAlbum') : (savedToAlbum ? t('recognize.saved') : t('recognize.saving'))) }}</text>
           </view>
         </view>
 
@@ -102,7 +102,7 @@
             <view class="loading-spinner"></view>
             <text class="loading-text">{{ analyzingStep }}</text>
           </view>
-          <text class="loading-hint">纯离线处理，图片不会上传</text>
+          <text class="loading-hint">{{ t('recognize.offlineHint') }}</text>
         </view>
 
         <!-- 分析结果（仅数量检测） -->
@@ -113,11 +113,11 @@
             <view class="summary-row">
               <view class="summary-item">
                 <text class="summary-number">{{ countResult.count }}</text>
-                <text class="summary-label">检测到的药片数</text>
+                <text class="summary-label">{{ t('recognize.detectedCount') }}</text>
               </view>
             </view>
             <view class="confidence-row">
-              <text class="conf-label">检测置信度</text>
+              <text class="conf-label">{{ t('recognize.confidence') }}</text>
               <view class="confidence-bar">
                 <view
                   class="confidence-fill"
@@ -134,8 +134,8 @@
 
           <!-- 标注图片显示 -->
           <view v-if="countResult && annotatedImagePath" class="card annotation-card">
-            <text class="section-title">🎯 药片检测标注</text>
-            <text class="annotation-hint">绿色区域表示识别的药片位置</text>
+            <text class="section-title">{{ t('recognize.annotationTitle') }}</text>
+            <text class="annotation-hint">{{ t('recognize.annotationHint') }}</text>
             <image
               :src="annotatedImagePath"
               mode="aspectFit"
@@ -145,8 +145,8 @@
 
           <!-- 手动修改药片数量 -->
           <view v-if="!isCountConfirmed" class="card adjust-count-card">
-            <text class="section-title">✏️ 调整药片数量</text>
-            <text class="adjust-hint">如果检测有误，可手动修改药片数量</text>
+            <text class="section-title">{{ t('recognize.adjustTitle') }}</text>
+            <text class="adjust-hint">{{ t('recognize.adjustHint') }}</text>
             <view class="count-adjuster">
               <view class="adjust-btn minus" @tap="decreaseCount">
                 <text>−</text>
@@ -161,24 +161,24 @@
             </view>
             <view class="confirm-btn-row">
               <view class="btn-confirm" @tap="confirmCount">
-                <text>✓ 确定</text>
+                <text>{{ t('recognize.confirmCount') }}</text>
               </view>
             </view>
           </view>
 
           <!-- 每日拍照模式 - 对比检测结果 -->
           <view v-if="isDailyMode && isCountConfirmed" class="card daily-compare-card">
-            <text class="section-title">📊 每日拍照对比</text>
+            <text class="section-title">{{ t('home.dailyPhotoValidation') }}</text>
             <view class="compare-row">
               <view class="compare-item">
-                <text class="compare-label">预期数量</text>
+                <text class="compare-label">{{ t('recognize.expectedCount') }}</text>
                 <text class="compare-number expected">{{ expectedDailyCount }}</text>
               </view>
               <view class="compare-symbol">
                 <text>VS</text>
               </view>
               <view class="compare-item">
-                <text class="compare-label">确认数量</text>
+                  <text class="compare-label">{{ t('recognize.confirmedCount') }}</text>
                 <text class="compare-number detected">{{ finalPillCount }}</text>
               </view>
             </view>
@@ -190,24 +190,24 @@
                 'result-deficit': finalPillCount < expectedDailyCount && finalPillCount > 0
               }"
             >
-              <text v-if="finalPillCount === expectedDailyCount" class="result-text">✓ 完美匹配！可以标记为完成</text>
-              <text v-else-if="finalPillCount > expectedDailyCount" class="result-text">⚠ 药片数超过预期</text>
-              <text v-else-if="finalPillCount > 0" class="result-text">⚠ 药片数少于预期</text>
+              <text v-if="finalPillCount === expectedDailyCount" class="result-text">{{ t('recognize.perfectMatch') }}</text>
+              <text v-else-if="finalPillCount > expectedDailyCount" class="result-text">{{ t('recognize.tooMany') }}</text>
+              <text v-else-if="finalPillCount > 0" class="result-text">{{ t('recognize.tooFew') }}</text>
             </view>
           </view>
 
           <!-- 拍摄建议 -->
           <view v-if="(countResult.count === 0 || countResult.confidence < 0.55) && !isDailyMode" class="card tips-box">
-            <text class="tips-title">💡 提高检测效果的建议</text>
-            <text class="tips-item">• 将药片摆放在黑色或深色背景板上</text>
-            <text class="tips-item">• 保持药片之间有间隙，不要堆叠</text>
-            <text class="tips-item">• 在光线充足均匀的环境下拍摄</text>
+            <text class="tips-title">{{ t('recognize.improveTitle') }}</text>
+            <text class="tips-item">{{ t('recognize.improve1') }}</text>
+            <text class="tips-item">{{ t('recognize.improve2') }}</text>
+            <text class="tips-item">{{ t('recognize.improve3') }}</text>
           </view>
 
           <!-- 离线说明 -->
           <view class="card info-card">
-            <text class="section-title">🔒 完全离线处理</text>
-            <text class="info-text">所有分析在设备本地完成，图片不会上传到任何服务器。</text>
+            <text class="section-title">{{ t('recognize.offlineTitle') }}</text>
+            <text class="info-text">{{ t('recognize.offlineText') }}</text>
           </view>
         </view>
       </view>
@@ -217,8 +217,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, getCurrentInstance, nextTick, onMounted } from 'vue';
-import { onLoad } from '@dcloudio/uni-app';
+import { ref, computed, getCurrentInstance, nextTick } from 'vue';
+import { onLoad, onShow } from '@dcloudio/uni-app';
+import { useI18n } from 'vue-i18n';
 import { useMedStore } from '../../stores/index';
 import { countPillsH5WithOverlay, countPillsApp, type CountResult } from '../../utils/pillCounter';
 import type { Medication } from '../../types';
@@ -227,6 +228,7 @@ import { persistImage, resolveDisplayUrl, fileToDataUrl, deletePersistedImage } 
 declare const wx: any;
 
 const store = useMedStore();
+const { t } = useI18n();
 const instance = getCurrentInstance();
 
 // 基础状态
@@ -234,10 +236,11 @@ const imagePath = ref('');
 const displayImagePath = ref('');
 const annotatedImagePath = ref('');  // 标注后的图片路径
 const isAnalyzing = ref(false);
-const analyzingStep = ref('正在检测药片…');
+const analyzingStep = ref(t('recognize.analyzing'));
 const countResult = ref<CountResult | null>(null);
 const savedToAlbum = ref(false);
 const saveFailed = ref(false);
+const photoSource = ref<'camera' | 'album'>('camera');
 
 // 数量调整状态
 const finalPillCount = ref(0);  // 用户最终确认的数量
@@ -258,12 +261,18 @@ const expectedPillCount = computed(() => store.todayExpectedPillCount);
 const isDailyMode = computed(() => isDailyPhotoMode.value);
 const expectedDailyCount = computed(() => expectedPillCount.value);
 
+function syncRecognizeMode(query?: any) {
+  const isLegacyDailyQuery = query?.mode === 'daily';
+  isDailyPhotoMode.value = isLegacyDailyQuery || store.recognizeMode === 'daily';
+}
+
 // ── 初始化检查模式 ─────────────────────────────────────
 onLoad((query: any) => {
-  // 检查 URL 参数，判断是否是每日拍照模式
-  if (query && query.mode === 'daily') {
-    isDailyPhotoMode.value = true;
-  }
+  syncRecognizeMode(query);
+});
+
+onShow(() => {
+  syncRecognizeMode();
 });
 
 // ── 拍照 ─────────────────────────────────────
@@ -272,7 +281,7 @@ function shootPhoto() {
     count: 1,
     sourceType: ['camera'],
     sizeType: ['compressed'],
-    success: (res) => handleNewPhoto(res.tempFilePaths[0]),
+    success: (res) => handleNewPhoto(res.tempFilePaths[0], 'camera'),
   });
 }
 
@@ -281,7 +290,7 @@ function chooseFromAlbum() {
     count: 1,
     sourceType: ['album'],
     sizeType: ['compressed'],
-    success: (res) => handleNewPhoto(res.tempFilePaths[0]),
+    success: (res) => handleNewPhoto(res.tempFilePaths[0], 'album'),
   });
 }
 
@@ -342,10 +351,10 @@ function doSaveToAlbum(filePath: string): Promise<void> {
         savedToAlbum.value = false;
         // 权限被拒时引导用户去系统设置开启
         uni.showModal({
-          title: '无法保存到相册',
-          content: '请在系统设置中允许访问相册',
-          confirmText: '去设置',
-          cancelText: '取消',
+          title: t('recognize.albumPermissionTitle'),
+          content: t('recognize.albumPermissionContent'),
+          confirmText: t('recognize.goSettings'),
+          cancelText: t('common.cancel'),
           success: (res) => {
             if (res.confirm) {
               // #ifdef APP-PLUS
@@ -385,22 +394,28 @@ function retakePhoto() {
   countResult.value = null;
   savedToAlbum.value = false;
   saveFailed.value = false;
+  photoSource.value = 'camera';
 }
 
-async function handleNewPhoto(filePath: string) {
+async function handleNewPhoto(filePath: string, source: 'camera' | 'album') {
   console.log('[Recognize] 处理新照片, 原始路径:', filePath);
   
   // 1. 立即重置状态并显示图片（使用临时路径先显示，避免等待持久化）
+  photoSource.value = source;
   savedToAlbum.value = false;
   saveFailed.value = false;
   imagePath.value = filePath;
   displayImagePath.value = filePath;
   
-  // 2. 立即保存到相册（使用原始临时路径，uni.saveImageToPhotosAlbum 需要临时路径）
-  savePhotoToAlbum(filePath).catch((e) => {
-    console.error('[Recognize] 保存到相册异常:', e);
-    saveFailed.value = true;
-  });
+  // 2. 仅拍照场景才回存系统相册；从相册选取不再重复保存，避免生成重复照片
+  if (source === 'camera') {
+    savePhotoToAlbum(filePath).catch((e) => {
+      console.error('[Recognize] 保存到相册异常:', e);
+      saveFailed.value = true;
+    });
+  } else {
+    savedToAlbum.value = true;
+  }
 
   // 3. 异步持久化和转换，不阻塞识别流程
   // 使用 setTimeout 确保上面的状态更新已经渲染
@@ -453,7 +468,7 @@ async function startAnalysis(filePath: string) {
   isAnalyzing.value = true;
   countResult.value = null;
 
-  analyzingStep.value = '正在检测药片数量…';
+  analyzingStep.value = t('recognize.analyzing');
 
   let count: CountResult;
   
@@ -513,9 +528,9 @@ async function startAnalysis(filePath: string) {
   console.log('[Recognize] 检测到的药片数量:', count.count);
 
   if (count.count > 0) {
-    uni.showToast({ title: `检测到 ${count.count} 片药片，请确认`, icon: 'success' });
+    uni.showToast({ title: t('recognize.detectedToast', { count: count.count }), icon: 'success' });
   } else {
-    uni.showToast({ title: count.message || '未检测到药片', icon: 'none', duration: 2500 });
+    uni.showToast({ title: count.message || t('recognize.noPillsToast'), icon: 'none', duration: 2500 });
   }
 }
 
@@ -618,9 +633,10 @@ function confirmCount() {
     const photoForRecord = annotatedImagePath.value || imagePath.value;
     const status = store.recordDailyPhoto(finalPillCount.value, photoForRecord);
     dailyPhotoResult.value = status;
+    store.setRecognizeMode('default');
   }
   
-  uni.showToast({ title: `已确认 ${finalPillCount.value} 片`, icon: 'success' });
+  uni.showToast({ title: t('recognize.confirmCountToast', { count: finalPillCount.value }), icon: 'success' });
 }
 </script>
 

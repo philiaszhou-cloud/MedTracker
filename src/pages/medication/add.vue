@@ -678,13 +678,25 @@ onLoad(async (options) => {
     isEditMode.value = true;
     const med = store.medications.find(m => m.id === options.editId);
     if (med) {
+      const originalBoxPath = med.boxImageUri || '';
+      const originalPillPath = med.pillImageUri || '';
+
       // ★ v9 新增：验证已保存的图片路径是否仍有效（Android 修复）
       // ★ v12 增强：兼容旧版 data URL / blob URL 格式
-      const boxIsDataUrl = (med.boxImageUri || '').startsWith('data:') || (med.boxImageUri || '').startsWith('blob:');
-      const pillIsDataUrl = (med.pillImageUri || '').startsWith('data:') || (med.pillImageUri || '').startsWith('blob:');
+      const boxIsDataUrl = originalBoxPath.startsWith('data:') || originalBoxPath.startsWith('blob:');
+      const pillIsDataUrl = originalPillPath.startsWith('data:') || originalPillPath.startsWith('blob:');
       
-      const boxValid = boxIsDataUrl ? true : await verifyImagePath(med.boxImageUri || '');
-      const pillValid = pillIsDataUrl ? true : await verifyImagePath(med.pillImageUri || '');
+      const verifiedBoxPath = boxIsDataUrl ? originalBoxPath : await verifyImagePath(originalBoxPath);
+      const verifiedPillPath = pillIsDataUrl ? originalPillPath : await verifyImagePath(originalPillPath);
+      const boxValid = !!verifiedBoxPath;
+      const pillValid = !!verifiedPillPath;
+
+      if (verifiedBoxPath && verifiedBoxPath !== med.boxImageUri) {
+        med.boxImageUri = verifiedBoxPath;
+      }
+      if (verifiedPillPath && verifiedPillPath !== med.pillImageUri) {
+        med.pillImageUri = verifiedPillPath;
+      }
       
       if (boxIsDataUrl || pillIsDataUrl) {
         console.log('[add] ★ 检测到旧版 data URL 格式的照片，建议重新拍摄');
@@ -724,23 +736,23 @@ onLoad(async (options) => {
       
       // #ifdef H5
       if (!boxIsDataUrl) {
-        boxUrl = boxValid ? await resolveDisplayUrl(med.boxImageUri || '') : '';
+        boxUrl = boxValid ? await resolveDisplayUrl(verifiedBoxPath || '') : '';
       }
       if (!pillIsDataUrl) {
-        pillUrl = pillValid ? await resolveDisplayUrl(med.pillImageUri || '') : '';
+        pillUrl = pillValid ? await resolveDisplayUrl(verifiedPillPath || '') : '';
       }
       // #endif
       // #ifndef H5
       // App 端：先验证路径有效性，再尝试转换为 data URL
       if (!boxIsDataUrl && boxValid) {
-        boxUrl = await fileToDataUrl(med.boxImageUri || '');
+        boxUrl = await fileToDataUrl(verifiedBoxPath || '');
       }
       if (!pillIsDataUrl && pillValid) {
-        pillUrl = await fileToDataUrl(med.pillImageUri || '');
+        pillUrl = await fileToDataUrl(verifiedPillPath || '');
       }
       // 回退：如果转换失败，使用原始路径
-      if (!boxUrl && med.boxImageUri && boxValid && !boxIsDataUrl) boxUrl = med.boxImageUri;
-      if (!pillUrl && med.pillImageUri && pillValid && !pillIsDataUrl) pillUrl = med.pillImageUri;
+      if (!boxUrl && verifiedBoxPath && boxValid && !boxIsDataUrl) boxUrl = verifiedBoxPath;
+      if (!pillUrl && verifiedPillPath && pillValid && !pillIsDataUrl) pillUrl = verifiedPillPath;
       // #endif
       
       boxDisplayUrl.value = boxUrl || '';
@@ -748,8 +760,8 @@ onLoad(async (options) => {
 
       form.value = {
         medicationType: med.medicationType || 'daily',
-        boxImageUri: boxValid ? (med.boxImageUri || '') : '', // ★ 如果路径失效，清除存储
-        pillImageUri: pillValid ? (med.pillImageUri || '') : '', // ★ 如果路径失效，清除存储
+        boxImageUri: boxValid ? (verifiedBoxPath || '') : '', // ★ 如果路径失效，清除存储
+        pillImageUri: pillValid ? (verifiedPillPath || '') : '', // ★ 如果路径失效，清除存储
         name: med.name,
         brand: med.brand || '',
         specification: med.specification,
@@ -762,6 +774,13 @@ onLoad(async (options) => {
         notes: med.notes || '',
         imageUri: med.imageUri || '',
       };
+
+      if ((verifiedBoxPath && verifiedBoxPath !== originalBoxPath) || (verifiedPillPath && verifiedPillPath !== originalPillPath)) {
+        store.updateMedication(med.id, {
+          boxImageUri: verifiedBoxPath || '',
+          pillImageUri: verifiedPillPath || '',
+        });
+      }
 
       if (options?.brandChanged === '1') {
         boxDisplayUrl.value = '';

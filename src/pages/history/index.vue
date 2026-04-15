@@ -6,8 +6,8 @@
       <view class="cyber-nav-terminal-inner">
         <view class="term-bracket term-left">[</view>
         <view class="term-title-wrap">
-          <text class="cyber-nav-term-title">◎ 服药记录</text>
-          <text class="cyber-nav-term-sub">// LOG_ARCHIVE_v1.0</text>
+          <text class="cyber-nav-term-title">{{ t('history.navTitle') }}</text>
+          <text class="cyber-nav-term-sub">{{ t('history.navSub') }}</text>
         </view>
         <view class="term-bracket term-right">]</view>
       </view>
@@ -32,45 +32,45 @@
       <view class="card stats-card">
         <view class="stat-item">
           <text class="stat-num text-success">{{ stats.taken }}</text>
-          <text class="stat-label">已服药</text>
+          <text class="stat-label">{{ t('history.taken') }}</text>
         </view>
         <view class="stat-divider"></view>
         <view class="stat-item">
           <text class="stat-num text-warning">{{ stats.skipped }}</text>
-          <text class="stat-label">已跳过</text>
+          <text class="stat-label">{{ t('history.skipped') }}</text>
         </view>
         <view class="stat-divider"></view>
         <view class="stat-item">
           <text class="stat-num text-danger">{{ stats.missed }}</text>
-          <text class="stat-label">已漏服</text>
+          <text class="stat-label">{{ t('history.missed') }}</text>
         </view>
         <view class="stat-divider"></view>
         <view class="stat-item">
           <text class="stat-num text-primary">{{ complianceRate }}%</text>
-          <text class="stat-label">依从率</text>
+          <text class="stat-label">{{ t('history.complianceRate') }}</text>
         </view>
       </view>
 
       <!-- 拍照记录摘要（按筛选范围） -->
       <view v-if="photoStats.total > 0" class="card photo-stats-card">
         <view class="photo-stats-header">
-          <text class="photo-stats-title">📸 每日拍照记录</text>
-          <text class="photo-stats-sub">{{ photoStats.total }} 天记录</text>
+          <text class="photo-stats-title">{{ t('history.dailyPhotoRecord') }}</text>
+          <text class="photo-stats-sub">{{ formatTotalDays(photoStats.total) }}</text>
         </view>
         <view class="photo-stats-row">
           <view class="photo-stat-item">
             <text class="photo-stat-num text-success">{{ photoStats.completed }}</text>
-            <text class="photo-stat-label">数量正确</text>
+            <text class="photo-stat-label">{{ t('history.countCorrect') }}</text>
           </view>
           <view class="photo-stat-divider"></view>
           <view class="photo-stat-item">
             <text class="photo-stat-num text-danger">{{ photoStats.mismatch }}</text>
-            <text class="photo-stat-label">数量不符</text>
+            <text class="photo-stat-label">{{ t('history.countMismatch') }}</text>
           </view>
           <view class="photo-stat-divider"></view>
           <view class="photo-stat-item">
             <text class="photo-stat-num text-muted">{{ photoStats.missed }}</text>
-            <text class="photo-stat-label">未拍照</text>
+            <text class="photo-stat-label">{{ t('history.countPending') }}</text>
           </view>
         </view>
       </view>
@@ -90,7 +90,7 @@
                 <text class="photo-count-num">{{ group.pillCount }}</text>
                 <text class="photo-count-sep">/</text>
                 <text class="photo-count-expected">{{ group.expectedCount }}</text>
-                <text class="photo-count-unit">片</text>
+                <text class="photo-count-unit">{{ t('common.pillsUnit') }}</text>
               </view>
               <view class="photo-log-info">
                 <text class="photo-log-time text-small text-muted">{{ formatPhotoTime(group.timestamp) }}</text>
@@ -105,7 +105,7 @@
 
       <!-- 服药记录标题 -->
       <view v-if="groupedLogs.length > 0" class="section-header">
-        <text class="section-title">💊 服药记录</text>
+        <text class="section-title">{{ t('history.medicationRecords') }}</text>
       </view>
 
       <!-- 日期分组记录 -->
@@ -113,7 +113,7 @@
         <view v-for="group in groupedLogs" :key="group.date" class="date-group">
           <view class="date-header">
             <text class="date-text">{{ group.dateLabel }}</text>
-            <text class="date-count text-muted text-small">{{ group.logs.length }} 条记录</text>
+            <text class="date-count text-muted text-small">{{ formatRecordCount(group.logs.length) }}</text>
           </view>
 
           <view class="card">
@@ -124,7 +124,7 @@
               <view class="log-content">
                 <view class="log-main">
                   <text class="log-med-name">{{ log.medicationName }}</text>
-                  <text class="log-scheduled text-muted text-small">计划 {{ log.scheduledTime }}</text>
+                  <text class="log-scheduled text-muted text-small">{{ formatPlannedTime(log.scheduledTime) }}</text>
                 </view>
                 <text class="log-time text-small text-muted">{{ formatTimeOnly(log.timestamp) }}</text>
               </view>
@@ -136,7 +136,7 @@
       <!-- 空状态 -->
       <view v-if="groupedLogs.length === 0 && groupedPhotoLogs.length === 0" class="empty-state">
         <view class="icon">📋</view>
-        <view class="text">暂无服药记录\n坚持服药，健康每一天！</view>
+        <view class="text">{{ t('history.empty') }}</view>
       </view>
     </view>
   </view>
@@ -145,19 +145,22 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
+import { useI18n } from 'vue-i18n';
 import { useMedStore } from '../../stores/index';
 import { formatDate, formatTime } from '../../utils';
+import { formatHistoryDateLabel } from '../../i18n';
 
 const store = useMedStore();
+const { t, locale } = useI18n();
 
 const activeFilter = ref('today');
 
-const dateFilters = [
-  { label: '今天', value: 'today' },
-  { label: '近7天', value: 'week' },
-  { label: '近30天', value: 'month' },
-  { label: '全部', value: 'all' },
-];
+const dateFilters = computed(() => [
+  { label: t('history.filterToday'), value: 'today' },
+  { label: t('history.filterWeek'), value: 'week' },
+  { label: t('history.filterMonth'), value: 'month' },
+  { label: t('history.filterAll'), value: 'all' },
+]);
 
 interface LogGroup {
   date: string;
@@ -248,25 +251,16 @@ const photoStats = computed(() => {
 });
 
 const groupedPhotoLogs = computed(() => {
-  const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
   const now = new Date();
 
   return filteredPhotoLogs.value
     .sort((a, b) => b.timestamp - a.timestamp)
     .map(log => {
-      const d = new Date(log.timestamp);
       const date = log.date;
-      const isToday = formatDate(now.getTime()) === date;
-      const yesterday = new Date(now.getTime() - 86400000);
-      const isYesterday = formatDate(yesterday.getTime()) === date;
-
-      let dateLabel = `${date} 星期${weekdays[d.getDay()]}`;
-      if (isToday) dateLabel = `今天 · ${date}`;
-      else if (isYesterday) dateLabel = `昨天 · ${date}`;
 
       return {
         date,
-        dateLabel,
+        dateLabel: formatHistoryDateLabel(log.timestamp, locale.value === 'en' ? 'en' : 'zh-Hans'),
         pillCount: log.pillCount,
         expectedCount: log.expectedCount,
         photoStatus: log.status,
@@ -286,22 +280,10 @@ const groupedLogs = computed((): LogGroup[] => {
     groups.get(date)!.push(log);
   });
 
-  const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-  
   return Array.from(groups.entries())
     .sort(([a], [b]) => b.localeCompare(a))
     .map(([date, logs]) => {
-      const d = new Date(logs[0].timestamp);
-      const today = new Date();
-      const isToday = formatDate(today.getTime()) === date;
-      const yesterday = new Date(today.getTime() - 86400000);
-      const isYesterday = formatDate(yesterday.getTime()) === date;
-      
-      let dateLabel = `${date} 星期${weekdays[d.getDay()]}`;
-      if (isToday) dateLabel = `今天 · ${date}`;
-      else if (isYesterday) dateLabel = `昨天 · ${date}`;
-
-      return { date, dateLabel, logs };
+      return { date, dateLabel: formatHistoryDateLabel(logs[0].timestamp, locale.value === 'en' ? 'en' : 'zh-Hans'), logs };
     });
 });
 
@@ -326,20 +308,41 @@ function formatPhotoTime(ts: number): string {
   return formatTime(ts);
 }
 
+function formatTotalDays(count: number): string {
+  if (locale.value === 'en') {
+    return `${count} day records`;
+  }
+  return `${count} 天记录`;
+}
+
+function formatRecordCount(count: number): string {
+  if (locale.value === 'en') {
+    return `${count} records`;
+  }
+  return `${count} 条记录`;
+}
+
+function formatPlannedTime(time: string): string {
+  if (locale.value === 'en') {
+    return `Scheduled ${time}`;
+  }
+  return `计划 ${time}`;
+}
+
 function photoStatusLabel(status: string): string {
   const map: Record<string, string> = {
-    completed: '✓ 正确',
-    mismatch: '⚠ 不符',
-    pending: '○ 待拍',
+    completed: t('history.correctShort'),
+    mismatch: t('history.mismatchShort'),
+    pending: t('history.pendingShort'),
   };
   return map[status] || status;
 }
 
 function photoStatusText(status: string): string {
   const map: Record<string, string> = {
-    completed: '拍照数量与预期一致',
-    mismatch: '拍照数量与预期不符',
-    pending: '未进行拍照记录',
+    completed: t('history.photoMatch'),
+    mismatch: t('history.photoMismatch'),
+    pending: t('history.photoPending'),
   };
   return map[status] || '';
 }

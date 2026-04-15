@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
 import { nextTick } from 'vue';
+import { applyTabBarLocale } from './i18n';
 import { useMedStore } from "./stores/index";
-import { createNotificationChannel, scheduleAllReminders, requestNotificationPermission, checkAndFirePendingReminder, restoreRegisteredAlarmCodes, sendLocalNotification } from "./utils/notification";
+import { createNotificationChannel, scheduleAllReminders, requestNotificationPermission, checkAndFirePendingReminder, restoreRegisteredAlarmCodes, ensureAlarmReceiverRegistered } from "./utils/notification";
 
 // 防止 onLaunch 和 onShow 首次启动时重复注册闹钟
 let hasInitialized = false;
@@ -18,15 +19,16 @@ onLaunch(() => {
   // 加载本地数据
   const store = useMedStore();
   store.loadFromStorage();
+  applyTabBarLocale();
 
   // ★ v14: 恢复已注册的闹钟 requestCode 列表（防重启丢失）
   restoreRegisteredAlarmCodes();
 
   // 初始化通知系统（延迟 2 秒确保 plus.android 完全就绪）
   setTimeout(() => {
-    nextTick(() => {
+    nextTick(async () => {
       try {
-        initNotifications(store.medications, store.reminderConfig);
+        await initNotifications(store.medications, store.reminderConfig);
         // ★ 检查是否由闹钟触发启动
         checkAndFirePendingReminder();
       } catch(e) {
@@ -68,6 +70,7 @@ onShow(() => {
   // 每次回到前台时检查是否有待处理的提醒通知
   const store = useMedStore();
   store.loadFromStorage();
+  applyTabBarLocale();
 
   // 延迟 300ms 后执行（避免 plus.android 未就绪）
   setTimeout(() => {
@@ -88,13 +91,17 @@ onHide(() => {
   // console.log("App Hide");
 });
 
-function initNotifications(medications: any[], reminderConfig: any) {
+async function initNotifications(medications: any[], reminderConfig: any) {
   // #ifdef APP-PLUS
   // 创建通知渠道
   createNotificationChannel();
+  ensureAlarmReceiverRegistered();
 
   // 请求通知权限（含精确闹钟权限）
-  requestNotificationPermission();
+  const permissionGranted = await requestNotificationPermission();
+  if (!permissionGranted) {
+    console.warn('[App] 通知权限未授予，提醒可能无法正常展示');
+  }
   // #endif
 
   // 注册所有提醒

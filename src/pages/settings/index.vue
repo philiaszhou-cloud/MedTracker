@@ -6,41 +6,49 @@
         <view class="profile-info">
           <view class="avatar">⊙</view>
           <view class="profile-text">
-            <text class="profile-name">用药助手用户</text>
-            <text class="profile-desc">MedReminder AI v1.0</text>
+            <text class="profile-name">{{ t('settings.profileName') }}</text>
+            <text class="profile-desc">{{ t('settings.profileDesc') }}</text>
           </view>
         </view>
       </view>
 
       <!-- 提醒设置 -->
       <view class="card">
-        <text class="card-title">⌛ 提醒设置</text>
+        <text class="card-title">{{ t('settings.reminderSettings') }}</text>
 
         <view class="setting-item">
-          <text class="setting-label">用药提醒</text>
+          <text class="setting-label">{{ t('settings.medicationReminder') }}</text>
           <view class="toggle-switch" :class="{ on: reminderConfig.enabled }" @tap="toggle('enabled')">
             <view class="toggle-knob"></view>
           </view>
         </view>
 
         <view class="setting-item">
-          <text class="setting-label">提醒声音</text>
+          <text class="setting-label">{{ t('settings.reminderSound') }}</text>
           <view class="toggle-switch" :class="{ on: reminderConfig.soundEnabled }" @tap="toggle('soundEnabled')">
             <view class="toggle-knob"></view>
           </view>
         </view>
 
         <view class="setting-item">
-          <text class="setting-label">震动提醒</text>
+          <text class="setting-label">{{ t('settings.vibrateReminder') }}</text>
           <view class="toggle-switch" :class="{ on: reminderConfig.vibrateEnabled }" @tap="toggle('vibrateEnabled')">
             <view class="toggle-knob"></view>
           </view>
         </view>
 
         <view class="setting-item">
-          <text class="setting-label">提前提醒</text>
+          <text class="setting-label">{{ t('settings.advanceReminder') }}</text>
           <view class="picker-value" @tap="pickAdvanceMinutes">
-            <text>{{ reminderConfig.advanceMinutes }} 分钟</text>
+            <text>{{ t('settings.minutesOption', { count: reminderConfig.advanceMinutes }) }}</text>
+            <text class="picker-arrow">›</text>
+          </view>
+        </view>
+
+        <view class="setting-item" @tap="pickLanguage">
+          <text class="setting-label">{{ t('settings.language') }}</text>
+          <view class="picker-value">
+            <text>{{ currentLanguageLabel }}</text>
             <text class="picker-arrow">›</text>
           </view>
         </view>
@@ -48,11 +56,11 @@
 
       <!-- 每日拍照记录设置 -->
       <view class="card">
-        <text class="card-title">📸 每日拍照记录</text>
-        <text class="setting-hint">启用后，每日拍照验证所有药片</text>
+        <text class="card-title">{{ t('settings.dailyPhotoRecord') }}</text>
+        <text class="setting-hint">{{ t('settings.dailyPhotoHint') }}</text>
 
         <view class="setting-item">
-          <text class="setting-label">启用每日拍照记录</text>
+          <text class="setting-label">{{ t('settings.enableDailyPhotoRecord') }}</text>
           <view class="toggle-switch" :class="{ on: dailyPhotoConfig.enabled }" @tap="togglePhotoMode">
             <view class="toggle-knob"></view>
           </view>
@@ -60,24 +68,24 @@
 
         <view v-if="dailyPhotoConfig.enabled" class="nested-settings">
           <view class="setting-item indent">
-            <text class="setting-label">强制完成拍照校验</text>
+            <text class="setting-label">{{ t('settings.requireDailyValidation') }}</text>
             <view class="toggle-switch" :class="{ on: dailyPhotoConfig.requireDaily }" @tap="toggleRequireDaily">
               <view class="toggle-knob"></view>
             </view>
           </view>
 
           <view class="photo-mode-info">
-            <text class="info-text">🎯 {{ dailyPhotoConfig.requireDaily ? '强制模式' : '可选模式' }}：</text>
+            <text class="info-text">🎯 {{ dailyPhotoConfig.requireDaily ? t('settings.requiredMode') : t('settings.optionalMode') }}：</text>
             <view v-if="!dailyPhotoConfig.requireDaily" class="info-section">
-              <text class="info-item">• 每日拍照验证是可选的</text>
-              <text class="info-item">• 可以不拍照直接记录服药</text>
-              <text class="info-item">• 拍照时会进行数量对比</text>
+              <text class="info-item">{{ t('settings.optionalItem1') }}</text>
+              <text class="info-item">{{ t('settings.optionalItem2') }}</text>
+              <text class="info-item">{{ t('settings.optionalItem3') }}</text>
             </view>
             <view v-else class="info-section">
-              <text class="info-item">• 每日拍照验证是强制的</text>
-              <text class="info-item">• 未拍照前无法记录服药</text>
-              <text class="info-item">• 完成拍照并通过校验后才能继续</text>
-              <text class="info-item">• 即使数量不符也可继续（有警告）</text>
+              <text class="info-item">{{ t('settings.requiredItem1') }}</text>
+              <text class="info-item">{{ t('settings.requiredItem2') }}</text>
+              <text class="info-item">{{ t('settings.requiredItem3') }}</text>
+              <text class="info-item">{{ t('settings.requiredItem4') }}</text>
             </view>
           </view>
         </view>
@@ -85,58 +93,58 @@
 
       <!-- 数据管理 -->
       <view class="card">
-        <text class="card-title">💾 数据管理</text>
+        <text class="card-title">{{ t('settings.dataManagement') }}</text>
 
         <view class="setting-item" @tap="exportData">
-          <text class="setting-label">导出数据</text>
+          <text class="setting-label">{{ t('settings.exportData') }}</text>
           <text class="setting-arrow">›</text>
         </view>
 
         <view class="setting-item danger-item" @tap="clearAllData">
-          <text class="setting-label text-danger">清除所有数据</text>
+          <text class="setting-label text-danger">{{ t('settings.clearAllData') }}</text>
           <text class="setting-arrow">›</text>
         </view>
       </view>
 
       <!-- 关于 -->
       <view class="card">
-        <text class="card-title">ℹ️ 关于</text>
+        <text class="card-title">{{ t('settings.about') }}</text>
 
         <view class="setting-item">
-          <text class="setting-label">版本号</text>
+          <text class="setting-label">{{ t('settings.version') }}</text>
           <text class="setting-value text-muted">1.0.0</text>
         </view>
 
         <view class="setting-item">
-          <text class="setting-label">隐私说明</text>
+          <text class="setting-label">{{ t('settings.privacy') }}</text>
           <text class="setting-arrow">›</text>
         </view>
 
         <view class="info-text mt-20">
           <text class="text-muted text-small">
-            MedReminder AI 是一款本地化的用药管理应用。您的所有数据（包括药品信息、服药记录、拍照图像）均存储在本地设备上，不会上传至任何服务器。
+            {{ t('settings.privacyBody') }}
           </text>
         </view>
       </view>
 
       <!-- 技术说明 -->
       <view class="card tech-card">
-        <text class="card-title">🛠️ 技术说明</text>
+        <text class="card-title">{{ t('settings.techInfo') }}</text>
         <view class="tech-item">
-          <text class="tech-label">开发框架</text>
+          <text class="tech-label">{{ t('settings.framework') }}</text>
           <text class="tech-value">uni-app (Vue 3 + TypeScript)</text>
         </view>
         <view class="tech-item">
-          <text class="tech-label">状态管理</text>
+          <text class="tech-label">{{ t('settings.stateManagement') }}</text>
           <text class="tech-value">Pinia</text>
         </view>
         <view class="tech-item">
-          <text class="tech-label">数据存储</text>
-          <text class="tech-value">本地 Storage (离线优先)</text>
+          <text class="tech-label">{{ t('settings.dataStorage') }}</text>
+          <text class="tech-value">{{ t('settings.offlineFirst') }}</text>
         </view>
         <view class="tech-item">
-          <text class="tech-label">AI 识别</text>
-          <text class="tech-value">本地模型推理 (TFLite/TF.js)</text>
+          <text class="tech-label">{{ t('settings.aiRecognition') }}</text>
+          <text class="tech-value">{{ t('settings.localInference') }}</text>
         </view>
       </view>
     </view>
@@ -144,13 +152,32 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
+import { onShow } from '@dcloudio/uni-app';
+import { useI18n } from 'vue-i18n';
 import { useMedStore } from '../../stores/index';
+import { getAppLocale, setAppLocale } from '../../i18n';
 import { clearAllImageData } from '../../utils/imageStorage';
 
 const store = useMedStore();
+const { t, locale } = useI18n();
 const reminderConfig = computed(() => store.reminderConfig);
 const dailyPhotoConfig = computed(() => store.dailyPhotoConfig);
+const currentLanguageLabel = computed(() => locale.value === 'en' ? t('settings.english') : t('settings.simplifiedChinese'));
+
+const advanceMinuteOptions = [0, 5, 10, 15, 30];
+
+function syncNavigationTitle() {
+  uni.setNavigationBarTitle({ title: t('nav.settings') });
+}
+
+onShow(() => {
+  syncNavigationTitle();
+});
+
+watch(() => locale.value, () => {
+  syncNavigationTitle();
+}, { immediate: true });
 
 function toggle(key: 'enabled' | 'soundEnabled' | 'vibrateEnabled') {
   const updates: Record<string, boolean> = {};
@@ -171,13 +198,30 @@ function toggleRequireDaily() {
 }
 
 function pickAdvanceMinutes() {
-  const options = ['0 分钟', '5 分钟', '10 分钟', '15 分钟', '30 分钟'];
   uni.showActionSheet({
-    itemList: options,
+    itemList: advanceMinuteOptions.map((value) => t('settings.minutesOption', { count: value })),
     success: (res) => {
       store.updateReminderConfig({
-        advanceMinutes: parseInt(options[res.tapIndex]),
+        advanceMinutes: advanceMinuteOptions[res.tapIndex],
       });
+    },
+  });
+}
+
+function pickLanguage() {
+  const options = [
+    { label: t('settings.simplifiedChinese'), value: 'zh-Hans' as const },
+    { label: t('settings.english'), value: 'en' as const },
+  ];
+
+  uni.showActionSheet({
+    itemList: options.map(option => option.label),
+    success: (res) => {
+      const selected = options[res.tapIndex];
+      if (!selected || selected.value === getAppLocale()) return;
+      setAppLocale(selected.value);
+      syncNavigationTitle();
+      uni.showToast({ title: t('settings.languageChanged'), icon: 'success' });
     },
   });
 }
@@ -202,13 +246,13 @@ function exportData() {
       (entry: any) => {
         (entry as any).createWriter((writer: any) => {
           writer.onwrite = () => {
-            uni.showToast({ title: '导出成功', icon: 'success' });
+            uni.showToast({ title: t('settings.exportSuccess'), icon: 'success' });
           };
           writer.write(content);
         });
       },
       () => {
-        uni.showToast({ title: '导出失败', icon: 'none' });
+        uni.showToast({ title: t('settings.exportFailed'), icon: 'none' });
       }
     );
     // #endif
@@ -221,25 +265,25 @@ function exportData() {
     a.download = `medreminder_backup_${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    uni.showToast({ title: '导出成功', icon: 'success' });
+    uni.showToast({ title: t('settings.exportSuccess'), icon: 'success' });
     // #endif
   } catch (e) {
-    uni.showToast({ title: '导出失败', icon: 'none' });
+    uni.showToast({ title: t('settings.exportFailed'), icon: 'none' });
   }
 }
 
 function clearAllData() {
   uni.showModal({
-    title: '⚠️ 确认清除',
-    content: '这将删除所有药品信息、服药记录、照片和设置。此操作不可恢复！',
-    confirmText: '确认清除',
+    title: t('settings.clearConfirmTitle'),
+    content: t('settings.clearConfirmContent'),
+    confirmText: t('settings.clearConfirmAction'),
     confirmColor: '#D32F2F',
     success: async (res) => {
       if (res.confirm) {
         uni.clearStorageSync();
         await clearAllImageData();
         store.loadFromStorage();
-        uni.showToast({ title: '数据已清除', icon: 'success' });
+        uni.showToast({ title: t('settings.dataCleared'), icon: 'success' });
       }
     },
   });

@@ -14,6 +14,78 @@ const STORAGE_KEYS = {
   DAILY_PHOTO_LOGS: 'medreminder_daily_photo_logs',
 };
 
+function sanitizeStockCount(value: number | undefined) {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return 0;
+  }
+  return Math.max(0, Math.floor(value));
+}
+
+function getIncomingStockCount(med: Medication) {
+  return sanitizeStockCount(med.incomingStock?.stockCount);
+}
+
+function getActiveStockCount(med: Medication) {
+  const totalStock = sanitizeStockCount(med.stockCount);
+  const incomingCount = getIncomingStockCount(med);
+  const maxActiveStock = Math.max(0, totalStock - incomingCount);
+
+  if (typeof med.activeStockCount === 'number') {
+    return Math.min(sanitizeStockCount(med.activeStockCount), maxActiveStock);
+  }
+
+  return incomingCount > 0 ? maxActiveStock : totalStock;
+}
+
+function activateIncomingStockBatch(med: Medication, consumedFromIncoming = 0) {
+  const incomingStock = med.incomingStock;
+  if (!incomingStock) {
+    med.activeStockCount = sanitizeStockCount(med.stockCount);
+    return;
+  }
+
+  const remainingIncoming = Math.max(0, sanitizeStockCount(incomingStock.stockCount) - sanitizeStockCount(consumedFromIncoming));
+  med.expiryDate = incomingStock.expiryDate;
+  med.stockCount = remainingIncoming;
+  med.activeStockCount = remainingIncoming;
+  med.incomingStock = undefined;
+}
+
+function normalizeMedicationInventory(med: Medication): Medication {
+  const normalized: Medication = { ...med };
+  const totalStock = sanitizeStockCount(normalized.stockCount);
+  const incomingExpiry = normalized.incomingStock?.expiryDate || '';
+  const rawIncomingCount = getIncomingStockCount(normalized);
+
+  if (!incomingExpiry || rawIncomingCount <= 0) {
+    normalized.stockCount = totalStock;
+    normalized.activeStockCount = totalStock;
+    normalized.incomingStock = undefined;
+    return normalized;
+  }
+
+  const incomingCount = Math.min(rawIncomingCount, totalStock);
+  normalized.incomingStock = {
+    stockCount: incomingCount,
+    expiryDate: incomingExpiry,
+    receivedAt: normalized.incomingStock?.receivedAt || Date.now(),
+  };
+
+  const maxActiveStock = Math.max(0, totalStock - incomingCount);
+  const activeStock = typeof normalized.activeStockCount === 'number'
+    ? Math.min(sanitizeStockCount(normalized.activeStockCount), maxActiveStock)
+    : maxActiveStock;
+
+  if (activeStock <= 0) {
+    activateIncomingStockBatch(normalized);
+    return normalized;
+  }
+
+  normalized.stockCount = activeStock + incomingCount;
+  normalized.activeStockCount = activeStock;
+  return normalized;
+}
+
 export const useMedStore = defineStore('medication', () => {
   // ===== 药品列表 =====
   const medications = ref<Medication[]>([]);
@@ -35,6 +107,9 @@ export const useMedStore = defineStore('medication', () => {
     requireDaily: false,    // 是否强制每日拍照校验
     lastPhotoDate: '',      // 最后一次拍照的日期
   });
+
+  // ===== 识别页临时模式 =====
+  const recognizeMode = ref<'default' | 'daily'>('default');
 
   // ===== 每日拍照记录 =====
   const dailyPhotoLogs = ref<{
@@ -174,7 +249,7 @@ export const useMedStore = defineStore('medication', () => {
       const medsData = uni.getStorageSync(STORAGE_KEYS.MEDICATIONS);
       if (medsData && typeof medsData === 'string') {
         const parsed = JSON.parse(medsData as string);
-        medications.value = Array.isArray(parsed) ? parsed : [];
+        medications.value = Array.isArray(parsed) ? parsed.map(normalizeMedicationInventory) : [];
       } else {
         medications.value = [];
       }
@@ -236,12 +311,12 @@ export const useMedStore = defineStore('medication', () => {
 
   // 添加药品
   function addMedication(med: Omit<Medication, 'id' | 'createdAt' | 'isActive'>) {
-    const newMed: Medication = {
+    const newMed = normalizeMedicationInventory({
       ...med,
       id: generateId(),
       createdAt: Date.now(),
       isActive: true,
-    };
+    });
     medications.value.push(newMed);
     saveMedications();
     // 重新注册所有提醒
@@ -253,7 +328,21 @@ export const useMedStore = defineStore('medication', () => {
   function updateMedication(id: string, updates: Partial<Medication>) {
     const index = medications.value.findIndex(m => m.id === id);
     if (index !== -1) {
-      medications.value[index] = { ...medications.value[index], ...updates };
+      const mergedMedication: Medication = { ...medications.value[index], ...updates };
+
+      if (
+        updates.stockCount !== undefined &&
+        mergedMedication.incomingStock &&
+        updates.incomingStock === undefined &&
+        updates.activeStockCount === undefined
+      ) {
+        mergedMedication.activeStockCount = Math.max(
+          0,
+          sanitizeStockCount(updates.stockCount) - getIncomingStockCount(mergedMedication)
+        );
+      }
+
+      medications.value[index] = normalizeMedicationInventory(mergedMedication);
       saveMedications();
       // 重新注册所有提醒
       scheduleAllReminders(medications.value, reminderConfig.value);
@@ -289,12 +378,70 @@ export const useMedStore = defineStore('medication', () => {
   }
 
   // 补充库存（识别后一键补药）
-  function addStock(id: string, count: number) {
+  function addStock(id: string, count: number, expiryDate: string) {
     const med = medications.value.find(m => m.id === id);
-    if (med) {
-      med.stockCount += count;
-      saveMedications();
+    const restockCount = sanitizeStockCount(count);
+
+    if (!med) {
+      return { ok: false as const, reason: 'not_found' as const };
     }
+    if (restockCount <= 0) {
+      return { ok: false as const, reason: 'invalid_count' as const };
+    }
+    if (!expiryDate) {
+      return { ok: false as const, reason: 'invalid_expiry' as const };
+    }
+
+    const currentActiveStock = getActiveStockCount(med);
+    const nextMedication: Medication = {
+      ...med,
+      stockCount: sanitizeStockCount(med.stockCount) + restockCount,
+      activeStockCount: currentActiveStock,
+    };
+
+    if (nextMedication.incomingStock) {
+      if (nextMedication.incomingStock.expiryDate !== expiryDate) {
+        return { ok: false as const, reason: 'pending_expiry_conflict' as const };
+      }
+
+      nextMedication.incomingStock = {
+        ...nextMedication.incomingStock,
+        stockCount: nextMedication.incomingStock.stockCount + restockCount,
+      };
+    } else {
+      nextMedication.incomingStock = {
+        stockCount: restockCount,
+        expiryDate,
+        receivedAt: Date.now(),
+      };
+    }
+
+    const index = medications.value.findIndex(m => m.id === id);
+    const normalizedMedication = normalizeMedicationInventory(nextMedication);
+    medications.value[index] = normalizedMedication;
+    saveMedications();
+
+    return {
+      ok: true as const,
+      activatedImmediately: !normalizedMedication.incomingStock,
+    };
+  }
+
+  function useIncomingStock(id: string) {
+    const index = medications.value.findIndex(m => m.id === id);
+    if (index === -1) {
+      return false;
+    }
+
+    const med = { ...medications.value[index] };
+    if (!med.incomingStock) {
+      return false;
+    }
+
+    activateIncomingStockBatch(med);
+    medications.value[index] = normalizeMedicationInventory(med);
+    saveMedications();
+    return true;
   }
 
   // ===== 服药记录操作 =====
@@ -314,16 +461,45 @@ export const useMedStore = defineStore('medication', () => {
     };
 
     intakeLogs.value.unshift(log);
+
+    // 防止记录无限累积导致 storage 超限：超过 500 条时裁剪，保留最近 90 天
+    if (intakeLogs.value.length > 500) {
+      const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
+      intakeLogs.value = intakeLogs.value.filter(l => l.timestamp >= cutoff);
+    }
+
     saveIntakeLogs();
 
     // 如果是已服药，扣除库存（更稳健地解析剂量）
     if (status === 'taken') {
       try {
         const dosage = Math.max(0, parseDosageToNumber(med.dosage));
+        const currentActiveStock = getActiveStockCount(med);
         med.stockCount = Math.max(0, med.stockCount - dosage);
+
+        const nextActiveStock = currentActiveStock - dosage;
+        if (nextActiveStock > 0) {
+          med.activeStockCount = nextActiveStock;
+        } else if (med.incomingStock?.stockCount) {
+          activateIncomingStockBatch(med, Math.abs(nextActiveStock));
+        } else {
+          med.activeStockCount = med.stockCount;
+        }
+
+        const index = medications.value.findIndex(item => item.id === med.id);
+        if (index !== -1) {
+          medications.value[index] = normalizeMedicationInventory({ ...med });
+        }
         saveMedications();
       } catch (e) {
         med.stockCount = Math.max(0, med.stockCount - 1);
+        const incomingCount = getIncomingStockCount(med);
+        med.activeStockCount = incomingCount > 0 ? Math.max(0, med.stockCount - incomingCount) : med.stockCount;
+
+        const index = medications.value.findIndex(item => item.id === med.id);
+        if (index !== -1) {
+          medications.value[index] = normalizeMedicationInventory({ ...med });
+        }
         saveMedications();
       }
     }
@@ -341,6 +517,10 @@ export const useMedStore = defineStore('medication', () => {
   function updateDailyPhotoConfig(updates: Partial<typeof dailyPhotoConfig.value>) {
     dailyPhotoConfig.value = { ...dailyPhotoConfig.value, ...updates };
     saveDailyPhotoConfig();
+  }
+
+  function setRecognizeMode(mode: 'default' | 'daily') {
+    recognizeMode.value = mode;
   }
 
   // 记录今日拍照
@@ -380,6 +560,7 @@ export const useMedStore = defineStore('medication', () => {
     reminderConfig,
     dailyPhotoConfig,
     dailyPhotoLogs,
+    recognizeMode,
     // Computed
     activeMedications,
     todayLogs,
@@ -396,9 +577,11 @@ export const useMedStore = defineStore('medication', () => {
     removeMedication,
     toggleMedication,
     addStock,
+    useIncomingStock,
     recordIntake,
     updateReminderConfig,
     updateDailyPhotoConfig,
+    setRecognizeMode,
     recordDailyPhoto,
   };
 });
