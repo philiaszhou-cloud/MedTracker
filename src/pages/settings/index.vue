@@ -40,7 +40,7 @@
         <view class="setting-item">
           <text class="setting-label">{{ t('settings.advanceReminder') }}</text>
           <view class="picker-value" @tap="pickAdvanceMinutes">
-            <text>{{ t('settings.minutesOption', { count: reminderConfig.advanceMinutes }) }}</text>
+            <text>{{ formatAdvanceMinutes(reminderConfig.advanceMinutes) }}</text>
             <text class="picker-arrow">›</text>
           </view>
         </view>
@@ -179,6 +179,13 @@ watch(() => locale.value, () => {
   syncNavigationTitle();
 }, { immediate: true });
 
+function formatAdvanceMinutes(count: number) {
+  if (locale.value === 'en') {
+    return `${count} min`;
+  }
+  return `${count} 分钟`;
+}
+
 function toggle(key: 'enabled' | 'soundEnabled' | 'vibrateEnabled') {
   const updates: Record<string, boolean> = {};
   updates[key] = !reminderConfig.value[key];
@@ -199,7 +206,7 @@ function toggleRequireDaily() {
 
 function pickAdvanceMinutes() {
   uni.showActionSheet({
-    itemList: advanceMinuteOptions.map((value) => t('settings.minutesOption', { count: value })),
+    itemList: advanceMinuteOptions.map((value) => formatAdvanceMinutes(value)),
     success: (res) => {
       store.updateReminderConfig({
         advanceMinutes: advanceMinuteOptions[res.tapIndex],

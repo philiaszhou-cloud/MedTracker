@@ -66,7 +66,7 @@
               </view>
               <!-- 检测结果标签 -->
               <view v-if="pillDetected" class="pill-detect-badge">
-                <text class="detect-badge-text">✓ {{ pillDetectCount }} 片</text>
+                <text class="detect-badge-text">{{ formatPillDetectBadge(pillDetectCount) }}</text>
               </view>
             </view>
             <view v-else class="photo-placeholder">
@@ -305,6 +305,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, getCurrentInstance } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
+import { useI18n } from 'vue-i18n';
 import { useMedStore } from '../../stores/index';
 import { DEFAULT_REMINDER_TIMES } from '../../types';
 import type { FrequencyType, MedicationType } from '../../types';
@@ -313,6 +314,7 @@ import { countPillsH5WithOverlay, countPillsApp } from '../../utils/pillCounter'
 import type { PillRegion, CountResult } from '../../utils/pillCounter';
 
 const store = useMedStore();
+const { locale } = useI18n();
 
 // ─── 聚焦状态（App 端高亮边框用）───
 const focusField = ref('');
@@ -596,6 +598,20 @@ const pillRegions = ref<PillRegion[]>([]);
 const canvasDisplayWidth = ref(0);
 const canvasDisplayHeight = ref(0);
 
+function formatPillDetectBadge(count: number) {
+  if (locale.value === 'en') {
+    return `✓ ${count} pills`;
+  }
+  return `✓ ${count} 片`;
+}
+
+function formatDetectedPillsToast(count: number) {
+  if (locale.value === 'en') {
+    return `${count} pills detected`;
+  }
+  return `检测到 ${count} 片药片`;
+}
+
 async function runPillDetection() {
   if (!pillDisplayUrl.value || pillDetecting.value) return;
 
@@ -648,7 +664,7 @@ async function runPillDetection() {
     // #endif
 
     if (result.count > 0) {
-      uni.showToast({ title: `检测到 ${result.count} 片药片`, icon: 'success' });
+      uni.showToast({ title: formatDetectedPillsToast(result.count), icon: 'success' });
     } else {
       uni.showToast({ title: result.message || '未检测到药片', icon: 'none' });
     }

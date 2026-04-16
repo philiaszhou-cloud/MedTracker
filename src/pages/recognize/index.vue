@@ -228,7 +228,7 @@ import { persistImage, resolveDisplayUrl, fileToDataUrl, deletePersistedImage } 
 declare const wx: any;
 
 const store = useMedStore();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const instance = getCurrentInstance();
 
 // 基础状态
@@ -528,10 +528,17 @@ async function startAnalysis(filePath: string) {
   console.log('[Recognize] 检测到的药片数量:', count.count);
 
   if (count.count > 0) {
-    uni.showToast({ title: t('recognize.detectedToast', { count: count.count }), icon: 'success' });
+    uni.showToast({ title: formatDetectedToast(count.count), icon: 'success' });
   } else {
     uni.showToast({ title: count.message || t('recognize.noPillsToast'), icon: 'none', duration: 2500 });
   }
+}
+
+function formatDetectedToast(count: number) {
+  if (locale.value === 'en') {
+    return `${count} pills detected. Please confirm.`;
+  }
+  return `检测到 ${count} 片药片，请确认`;
 }
 
 // App 端：基于检测结果在离屏 canvas 绘制绿色半透明覆盖并导出为图片
@@ -636,7 +643,14 @@ function confirmCount() {
     store.setRecognizeMode('default');
   }
   
-  uni.showToast({ title: t('recognize.confirmCountToast', { count: finalPillCount.value }), icon: 'success' });
+  uni.showToast({ title: formatConfirmCountToast(finalPillCount.value), icon: 'success' });
+}
+
+function formatConfirmCountToast(count: number) {
+  if (locale.value === 'en') {
+    return `${count} pills confirmed`;
+  }
+  return `已确认 ${count} 片`;
 }
 </script>
 

@@ -23,7 +23,7 @@
       <view v-if="hasUntakenToday" class="pending-alert-banner">
         <view class="pending-alert-icon">!</view>
         <view class="pending-alert-content">
-          <text class="pending-alert-title">{{ t('home.pendingAlertTitle', { count: pendingReminderCount }) }}</text>
+          <text class="pending-alert-title">{{ pendingAlertTitle }}</text>
           <text class="pending-alert-desc">{{ pendingReminderHint }}</text>
         </view>
       </view>
@@ -196,16 +196,14 @@ const pendingReminders = computed(() =>
 const pendingReminderCount = computed(() => pendingReminders.value.length);
 const hasUntakenToday = computed(() => todayTotalCount.value > 0 && pendingReminderCount.value > 0);
 const languageToggleLabel = computed(() => locale.value === 'en' ? '中文' : 'EN');
+const pendingAlertTitle = computed(() => formatPendingAlertTitle(pendingReminderCount.value));
 const pendingReminderHint = computed(() => {
   if (pendingReminders.value.length === 0) {
     return t('home.pendingAlertAllDone');
   }
 
   const nextReminder = pendingReminders.value[0];
-  return t('home.pendingHint', {
-    name: nextReminder.medicationName,
-    time: nextReminder.scheduledTime,
-  });
+  return formatPendingReminderHint(nextReminder.medicationName, nextReminder.scheduledTime);
 });
 
 const progressPercent = computed(() => {
@@ -218,9 +216,7 @@ const progressText = computed(() => {
     return t('home.progressDone');
   }
 
-  return t('home.progressPending', {
-    count: todayTotalCount.value - todayTakenCount.value,
-  });
+  return formatProgressPending(todayTotalCount.value - todayTakenCount.value);
 });
 
 onShow(() => {
@@ -271,6 +267,48 @@ function formatStockAlertInfo(count: number, days: number) {
   return `剩余 ${count} 片，约 ${days} 天`;
 }
 
+function formatPendingAlertTitle(count: number) {
+  if (locale.value === 'en') {
+    return `${count} doses are still pending today`;
+  }
+  return `今日还有 ${count} 次未服药`;
+}
+
+function formatPendingReminderHint(name: string, time: string) {
+  if (locale.value === 'en') {
+    return `Please handle the ${name} reminder at ${time}`;
+  }
+  return `请尽快处理 ${name} ${time} 的服药提醒`;
+}
+
+function formatProgressPending(count: number) {
+  if (locale.value === 'en') {
+    return `${count} reminders remaining`;
+  }
+  return `还有 ${count} 次待服药`;
+}
+
+function formatMismatchForceContent(expected: number, actual: number) {
+  if (locale.value === 'en') {
+    return `Expected ${expected} pills, but detected ${actual}. Strict photo verification is enabled, so you must retake the photo before continuing.`;
+  }
+  return `预期 ${expected} 片，拍照识别 ${actual} 片。已启用强制拍照验证，无法继续记录，请重新拍照。`;
+}
+
+function formatMismatchContinueContent(expected: number, actual: number) {
+  if (locale.value === 'en') {
+    return `Expected ${expected} pills, but detected ${actual}. Do you want to continue logging this dose?`;
+  }
+  return `预期 ${expected} 片，拍照识别 ${actual} 片。是否继续记录服药？`;
+}
+
+function formatConfirmTakeContent(name: string, dosage: string) {
+  if (locale.value === 'en') {
+    return `Confirm that you took ${name} (${dosage})?`;
+  }
+  return `确认已服用 ${name}（${dosage}）？`;
+}
+
 const confirmingMedId = ref('');
 
 function confirmTake(reminder: { medicationId: string; medicationName: string; dosage: string; scheduledTime: string }) {
@@ -299,10 +337,7 @@ function confirmTake(reminder: { medicationId: string; medicationName: string; d
       if (dailyPhotoConfig.value.requireDaily) {
         uni.showModal({
           title: t('home.mismatchTitle'),
-          content: t('home.mismatchForceContent', {
-            expected: todayPhotoStatus.value.expectedCount,
-            actual: todayPhotoStatus.value.pillCount,
-          }),
+          content: formatMismatchForceContent(todayPhotoStatus.value.expectedCount, todayPhotoStatus.value.pillCount),
           showCancel: false,
           confirmText: t('home.goTakePhoto'),
           success: (res) => {
@@ -315,10 +350,7 @@ function confirmTake(reminder: { medicationId: string; medicationName: string; d
 
       uni.showModal({
         title: t('home.mismatchTitle'),
-        content: t('home.mismatchContinueContent', {
-          expected: todayPhotoStatus.value.expectedCount,
-          actual: todayPhotoStatus.value.pillCount,
-        }),
+        content: formatMismatchContinueContent(todayPhotoStatus.value.expectedCount, todayPhotoStatus.value.pillCount),
         confirmText: t('common.continue'),
         cancelText: t('home.retakePhoto'),
         success: (res) => {
@@ -340,7 +372,7 @@ function confirmTake(reminder: { medicationId: string; medicationName: string; d
 function recordIntakeConfirmed(reminder: { medicationId: string; medicationName: string; dosage: string; scheduledTime: string }) {
   uni.showModal({
     title: t('home.confirmTakeTitle'),
-    content: t('home.confirmTakeContent', { name: reminder.medicationName, dosage: reminder.dosage }),
+    content: formatConfirmTakeContent(reminder.medicationName, reminder.dosage),
     confirmText: t('home.takenConfirm'),
     confirmColor: '#1976D2',
     cancelText: t('home.laterReminder'),

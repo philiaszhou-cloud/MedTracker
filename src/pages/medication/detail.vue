@@ -339,6 +339,13 @@ function formatDailyUsage(count: number) {
   return `每日用量约 ${count} 片`;
 }
 
+function formatDeleteMedicationContent(name: string) {
+  if (locale.value === 'en') {
+    return `Delete "${name}"? Related intake records will also be removed.`;
+  }
+  return `确定要删除「${name}」吗？相关服药记录也会一并删除。`;
+}
+
 function formatBatchSummary(count: number, expiryDate: string) {
   if (!expiryDate) {
     return locale.value === 'en' ? `${count} pills` : `${count} 片`;
@@ -621,7 +628,7 @@ function editMedication() {
 function deleteMedication() {
   uni.showModal({
     title: t('detail.confirmDeleteTitle'),
-    content: t('detail.confirmDeleteContent', { name: medication.value?.name || '' }),
+    content: formatDeleteMedicationContent(medication.value?.name || ''),
     confirmText: t('common.delete'),
     confirmColor: '#D32F2F',
     success: (res) => {
